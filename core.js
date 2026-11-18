@@ -39,7 +39,7 @@ C.portion = function(uid){ var p = C.prof(uid).portion; return p > 0 ? p : 1; };
 C.units = function(){ return C.prof(C.me && C.me.uid).units === 'us' ? 'us' : 'm'; };
 C.COLORS = [['#E1F5EE','#085041'],['#EEEDFE','#3C3489'],['#FAEEDA','#854F0B'],['#FBEAF0','#72243E'],['#E6F1FB','#0C447C'],['#EAF3DE','#27500A']];
 C.avatar = function(uid, size){ var p = C.prof(uid), c = C.COLORS[p.color || 0] || C.COLORS[0]; size = size || 28;
-  return '<span class="av" style="width:'+size+'px;height:'+size+'px;font-size:'+Math.round(size*0.42)+'px;background:'+c[0]+';color:'+c[1]+'" aria-hidden="true">'+C.esc((p.ini || p.name || '?').slice(0,2))+'</span>'; };
+  return '<span class="av" style="width:'+size+'px;height:'+size+'px;font-size:'+Math.round(size*((p.ini || p.name || '?').slice(0,2).length > 1 ? 0.36 : 0.42))+'px;background:'+c[0]+';color:'+c[1]+'" aria-hidden="true">'+C.esc((p.ini || p.name || '?').slice(0,2))+'</span>'; };
 
 /* ---------- foods ---------- */
 C.food = function(key){
@@ -208,9 +208,9 @@ C.plan = function(wk){ return C.D.plans[wk] || {}; };
 C.slot = function(wk, di, s){ var d = C.plan(wk)['d' + di]; return d && d[s] ? d[s] : null; };
 C.eff = function(sl, uid){ if(!sl) return null; return (sl.p && sl.p[uid]) || sl.r || null; };
 C.dayTotal = function(wk, di, uid){
-  var t = {k:0, p:0, heavy:0, n:0};
+  var t = {k:0, p:0, heavy:0, n:0, main:0};
   C.SLOTS.forEach(function(s){ var r = C.rec(C.eff(C.slot(wk, di, s), uid)); if(!r) return; var n = C.nutri(r), m = C.portion(uid);
-    t.k += n.k*m; t.p += n.p*m; t.n++; if(C.has(r,'heavy')) t.heavy++; });
+    t.k += n.k*m; t.p += n.p*m; t.n++; if(s !== 'S') t.main++; if(C.has(r,'heavy')) t.heavy++; });
   return t;
 };
 C.weekBreads = function(wk){ var n = 0; for(var d=0; d<7; d++) C.SLOTS.forEach(function(s){ var sl = C.slot(wk, d, s); if(!sl) return;
@@ -220,29 +220,35 @@ C.weekBreads = function(wk){ var n = 0; for(var d=0; d<7; d++) C.SLOTS.forEach(f
 C.suggestWeek = function(wk, diet){
   var all = C.all().filter(function(r){ return C.dietOk(r, diet); });
   var favs = C.D.settings.favs || [];
-  function byFav(a, b){ return (favs.indexOf(b.id) >= 0) - (favs.indexOf(a.id) >= 0); }
-  var bf = all.filter(function(r){ return r.c === 'b'; }).sort(byFav);
+  var md = C.parse(wk), recent = {};
+  [C.wk(C.addD(md, -7)), C.wk(C.addD(md, 7)), C.wk(C.addD(md, -14))].forEach(function(w){
+    var p = C.D.plans[w] || {};
+    for(var d=0; d<7; d++){ var dd = p['d'+d] || {}; C.SLOTS.forEach(function(s){ if(dd[s] && dd[s].r) recent[dd[s].r] = 1; }); }
+  });
+  function shuffle(a){ a = a.slice(); for(var i=a.length-1;i>0;i--){ var j = Math.floor(Math.random()*(i+1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function pool(list){ var fresh = list.filter(function(r){ return !recent[r.id]; }); var base = fresh.length >= 3 ? fresh : list;
+    var out = []; base.forEach(function(r){ out.push(r); if(favs.indexOf(r.id) >= 0) out.push(r); }); return shuffle(out); }
+  var bf = pool(all.filter(function(r){ return r.c === 'b'; }));
   var mains = all.filter(function(r){ return r.c === 'm' && !C.has(r,'occ'); });
-  var fulls = all.filter(function(r){ return r.c === 'ss' && C.has(r,'full'); });
-  var snacks = all.filter(function(r){ return r.c === 'sn'; }).sort(byFav);
-  var order = ['chicken','fish','paneer','egg','chicken','fish','tofu'];
+  var fulls = pool(all.filter(function(r){ return r.c === 'ss' && C.has(r,'full'); }));
+  var order = shuffle(['chicken','fish','paneer','egg','chicken','fish','tofu']);
   var used = {}, mutton = 0, fields = {}, plan = C.plan(wk);
   for(var d=0; d<7; d++){ C.SLOTS.forEach(function(s){ var sl = C.slot(wk, d, s); var id = C.eff(sl, C.me.uid); if(id) used[id] = 1; }); }
   function pickMain(d){
     var want = order[d % order.length];
-    var pool = mains.filter(function(r){ return !used[r.id] && (r.pr === want || (want === 'tofu' && r.pr === 'paneer')); });
-    if(!pool.length) pool = mains.filter(function(r){ return !used[r.id]; });
-    if(!pool.length) pool = mains;
-    pool = pool.filter(function(r){ return r.pr !== 'mutton' || mutton < 1; });
-    var r = pool[(d * 7 + 3) % Math.max(1, pool.length)] || mains[0];
+    var ok = function(r){ return !used[r.id] && (r.pr !== 'mutton' || mutton < 1); };
+    var p1 = mains.filter(function(r){ return ok(r) && !recent[r.id] && (r.pr === want || (want === 'tofu' && r.pr === 'paneer')); });
+    var p2 = mains.filter(function(r){ return ok(r) && !recent[r.id]; });
+    var p3 = mains.filter(ok);
+    var pl = p1.length ? p1 : p2.length ? p2 : p3.length ? p3 : mains;
+    var r = pl[Math.floor(Math.random()*pl.length)];
     if(r){ used[r.id] = 1; if(r.pr === 'mutton') mutton++; }
     return r;
   }
-  var bi = 0, si = 0, fi = 0, newDinner = {};
+  var bi = 0, fi = 0, newDinner = {}, lastB = null;
   for(var di=0; di<7; di++){
     var dd = plan['d' + di] || {};
-    if(!dd.B && bf.length){ fields['d'+di+'.B'] = {r: bf[bi % bf.length].id}; bi++; }
-    if(!dd.S && snacks.length){ fields['d'+di+'.S'] = {r: snacks[si % snacks.length].id}; si++; }
+    if(!dd.B && bf.length){ var b = bf[bi % bf.length]; if(b.id === lastB && bf.length > 1){ bi++; b = bf[bi % bf.length]; } fields['d'+di+'.B'] = {r:b.id}; lastB = b.id; bi++; }
     if(!dd.D){ var m = pickMain(di); if(m){ newDinner[di] = m.id; fields['d'+di+'.D'] = {r:m.id}; } }
   }
   for(var dj=0; dj<7; dj++){
@@ -252,10 +258,22 @@ C.suggestWeek = function(wk, diet){
     if(prevD){
       fields['d'+dj+'.L'] = {r: prevD, lo: C.DAYS[dj-1] + ' dinner'};
       if(newDinner[dj-1]) fields['d'+(dj-1)+'.D'] = {r: newDinner[dj-1], x: true};
-      else if(plan['d'+(dj-1)] && plan['d'+(dj-1)].D){ var o = Object.assign({}, plan['d'+(dj-1)].D, {x:true}); fields['d'+(dj-1)+'.D'] = o; }
+      else if(plan['d'+(dj-1)] && plan['d'+(dj-1)].D){ fields['d'+(dj-1)+'.D'] = Object.assign({}, plan['d'+(dj-1)].D, {x:true}); }
     } else if(fulls.length){ fields['d'+dj+'.L'] = {r: fulls[fi % fulls.length].id}; fi++; }
   }
   return fields;
+};
+C.LOW_DAY = 1200;
+C.lowDay = function(tot, uid){
+  if(tot.main < 3) return false;
+  return tot.k < C.LOW_DAY * C.portion(uid);
+};
+C.weekHasPlan = function(wk){ var p = C.D.plans[wk] || {}; for(var d=0; d<7; d++){ var dd = p['d'+d]; if(dd && C.SLOTS.some(function(s){ return dd[s]; })) return true; } return false; };
+C.dayHasMeals = function(wk, d){ var dd = C.plan(wk)['d'+d] || {}; return ['B','L','D'].some(function(s){ return dd[s]; }); };
+C.needsSig = function(wk, diet){
+  var n = C.weekNeeds(wk, diet).map(function(x){ return (x.key || x.name) + ':' + Math.round(x.amt); }).sort().join('|'), h = 5381;
+  for(var i=0; i<n.length; i++) h = ((h << 5) + h + n.charCodeAt(i)) | 0;
+  return String(h);
 };
 
 /* ---------- groceries from plan ---------- */
@@ -317,7 +335,9 @@ C.amtText = function(item){
   var main;
   if(item.u === 'pc') main = String(Math.ceil(item.amt));
   else main = C.qty(item.amt, item.u);
-  var st = C.storeAmt(item.key, item.amt, item.u);
+  var f = C.food(item.key), st;
+  if(item.u === 'g' && f && f.cnt && f.pc){ var n = Math.max(1, Math.round(item.amt / f.pc * 2) / 2); var nm = f.n.toLowerCase(); if(n <= 1) nm = nm.replace(/ies$/,'y').replace(/oes$/,'o').replace(/s$/,''); else if(!/s$/.test(nm)) nm += 's'; st = 'about ' + C.frac(n) + ' ' + nm; }
+  else st = C.storeAmt(item.key, item.amt, item.u);
   return st ? main + ', ' + st : main;
 };
 C.groceryText = function(items){
@@ -340,12 +360,9 @@ C.reminders = function(date){
     Object.keys(ids).forEach(function(id){
       var r = C.rec(id); if(!r || !C.has(r,'thaw') || dn.lo) return;
       var prot = (r.i || []).map(function(i){ return C.food(i[0]); }).filter(function(f){ return f && f.s === 'Meat and fish'; })[0];
-      out.push({key:'thaw-' + id, text:'Take ' + (prot ? prot.n.toLowerCase() : 'the protein') + ' out of the freezer', sub:'For tonight\u2019s ' + r.n.toLowerCase() + '. Thaw it in the fridge.'});
+      out.push({key:'thaw-' + id, text:'Take ' + (prot ? prot.n.toLowerCase() : 'the protein') + ' out of the freezer', sub:'Before you leave: it\u2019s for tonight\u2019s ' + r.n.toLowerCase() + '. Thaw it in the fridge.'});
     });
   }
-  var tmr = C.addD(date, 1), tdn = C.slot(C.wk(tmr), C.di(tmr), 'D');
-  var hasPlan = false; for(var i=0;i<7;i++){ if(C.plan(wk)['d'+i]) hasPlan = true; }
-  if(!hasPlan) out.push({key:'plan-week', text:'This week isn\u2019t planned yet', sub:'Use Suggest my week in Plan to fill it in a few seconds.', act:'gotoPlan'});
   return out;
 };
 })();

@@ -33,7 +33,7 @@ F('mint','Mint leaves',P,'g','g',[44,3.3,1.4,0.7,6.8],['2 tbsp',5],{buy:[50,'bun
 F('lemon','Lemons',P,'g','a',[29,1.1,6.5,0.3,2.8],['juice of ½ lemon',30],{pc:60,cnt:1,gi:'Low',note:'Great for flavor. Lemon juice has very few carbs.',al:['lemon','nimbu']});
 F('lime','Limes',P,'g','a',[30,0.7,7.7,0.2,2.8],['juice of 1 lime',30],{pc:45,cnt:1,gi:'Low',note:'Great for flavor, very few carbs in the juice.',al:['lime']});
 F('avocado','Avocados',P,'g','g',[160,2,1.8,14.7,6.7],['½ avocado',75],{pc:150,cnt:1,gi:NO,note:'The classic keto food. High in calories, so about half per serving.',al:['avocado']});
-F('lettuce','Lettuce',P,'g','g',[17,1.2,1.2,0.3,2.1],['2 cups',80],{pc:300,buy:[300,'head'],gi:NO,note:'Use freely. Great for wraps.',al:['romaine','lettuce leaves']});
+F('lettuce','Lettuce',P,'g','g',[17,1.2,1.2,0.3,2.1],['2 cups',80],{pc:300,buy:[300,'head'],gi:NO,note:'Use freely. Great for wraps.',al:['romaine','lettuce leaves','salad greens','greens','mixed greens']});
 F('kale','Kale',P,'g','g',[35,2.9,1,1.5,4],['1 cup',20],{buy:[280,'bunch'],gi:NO,note:'Very low in net carbs.'});
 F('celery','Celery',P,'g','g',[14,0.7,1.4,0.2,1.6],['2 stalks',80],{pc:40,buy:[450,'bunch'],gi:NO,note:'Crunchy, almost no carbs.'});
 F('okra','Okra',P,'g','g',[33,1.9,4.3,0.2,3.2],['1 cup',100],{buy:[450,'1 lb bag'],gi:'Low, about 20',note:'Fine in normal portions.',al:['bhindi','lady finger']});
@@ -85,6 +85,9 @@ F('almond-milk','Unsweetened almond milk',D,'g','g',[15,0.6,0.3,1.2,0.3],['1 cup
 F('tofu','Firm tofu',D,'g','g',[130,14,1.5,7,1.5],['100 g',100],{buy:[400,'block'],gi:NO,note:'Low-carb vegetarian protein.',al:['tofu','extra firm tofu']});
 
 // Meat and fish
+F('chicken','Chicken',M,'g','g',[130,21,0,4.5,0],['palm-sized, 120 g',120],{gi:NO,note:'Zero carbs. Breast is leanest, thighs are juicier.',al:['chicken','whole chicken','chicken pieces','chicken curry cut']});
+F('fish','Fish',M,'g','g',[100,20,0,2,0],['palm-sized, 120 g',120],{gi:NO,note:'Zero carbs. Great protein.',al:['fish','white fish','cod','basmati fish','pomfret','rohu']});
+F('mixed-nuts','Mixed nuts',A,'a','a',[600,18,10,53,8],['small handful',20],{tsp:3,buy:[450,'jar'],gi:NO,note:'Keto, but calorie-dense. Small handful.',tip:'Unsalted or lightly salted, no honey roasting.',al:['nuts','mixed nuts','trail mix']});
 F('chicken-breast','Chicken breast',M,'g','g',[120,22.5,0,2.6,0],['palm-sized, 120 g',120],{gi:NO,note:'Lean protein, zero carbs.',al:['chicken breast','boneless chicken']});
 F('chicken-thigh','Chicken thighs, boneless',M,'g','g',[135,19,0,6,0],['palm-sized, 120 g',120],{gi:NO,note:'Juicier than breast, a little more fat.',al:['chicken thighs','chicken thigh']});
 F('drumsticks','Chicken drumsticks',M,'g','g',[161,17,0,10,0],['2 drumsticks',220],{pc:110,cnt:1,gi:NO,note:'Zero carbs. Skin adds fat.',al:['chicken drumsticks','chicken legs']});
@@ -126,7 +129,7 @@ F('baking-powder','Baking powder',A,'g','g',[53,0,28,0,0],['½ tsp',2],{tsp:4.6,
 F('tea','Tea leaves',A,'g','g',[1,0,0.3,0,0],['1 tsp',2],{tsp:2,buy:[450,'box'],st:1,gi:NO,note:'Zero carbs without sugar.',al:['chai patti','tea bags','green tea']});
 F('water','Water',A,'g','g',[0,0,0,0,0],['1 cup',240],{tsp:5,st:1,gi:NO,note:''});
 F('ghee','Ghee',A,'a','a',[900,0,0,100,0],['1 tsp',5],{tsp:5,buy:[450,'jar'],st:1,gi:NO,note:'Keto fat with great flavor. Measure with a spoon.'});
-F('olive-oil','Olive oil',A,'a','a',[884,0,0,100,0],['1 tsp',4.5],{tsp:4.5,buy:[500,'bottle'],st:1,gi:NO,note:'Healthy fat. Measure with a spoon, never pour.'});
+F('olive-oil','Olive oil',A,'a','a',[884,0,0,100,0],['1 tsp',4.5],{tsp:4.5,buy:[500,'bottle'],st:1,gi:NO,note:'Healthy fat. Measure with a spoon, never pour.',al:['oil','cooking oil','extra virgin olive oil']});
 F('mustard-oil','Mustard oil',A,'a','a',[884,0,0,100,0],['1 tsp',4.5],{tsp:4.5,buy:[1000,'bottle'],st:1,gi:NO,note:'Good for Indian cooking. Measure it.',al:['sarson oil']});
 F('coconut-oil','Coconut oil',A,'a','a',[892,0,0,100,0],['1 tsp',4.5],{tsp:4.5,buy:[400,'jar'],st:1,gi:NO,note:'Keto fat. Measure it.'});
 

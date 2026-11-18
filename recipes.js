@@ -14,15 +14,15 @@ var R = [];
 function A(o){ o.sv = o.sv || 2; o.tags = o.tags || ''; R.push(o); }
 
 // Breakfast
-A({id:'masala-omelette',n:'Masala omelette',c:'b',d:'non',t:10,k:200,p:13,nc:3,pr:'egg',tags:'quick',
- i:[['egg',4,'pc'],['onion',20,'g'],['tomato',30,'g'],['green-chili',1,'pc'],['coriander',5,'g'],['turmeric',0.125,'tsp'],['ghee',2,'tsp'],['salt',0,'taste']],
+A({id:'masala-omelette',n:'Masala omelette',c:'b',d:'non',t:10,k:290,p:20,nc:3,pr:'egg',tags:'quick',
+ i:[['egg',6,'pc'],['onion',20,'g'],['tomato',30,'g'],['green-chili',1,'pc'],['coriander',5,'g'],['turmeric',0.125,'tsp'],['ghee',2,'tsp'],['salt',0,'taste']],
  s:[['Whisk {0} with {5}, a pinch of salt and pepper.'],['Finely chop {1}, {2}, {3} and {4}, and stir them into the eggs.'],['Heat half of {6} in a pan on medium heat. Pour in half the mix, cook 2 minutes, fold, and cook 1 more minute. Repeat for the second omelette.',180]],
  tip:'Add a handful of spinach or mushrooms for more volume with almost no carbs.'});
-A({id:'scrambled-eggs-cheese',n:'Scrambled eggs with cheese',c:'b',d:'non',t:8,k:265,p:18,nc:2,pr:'egg',tags:'quick',
- i:[['egg',4,'pc'],['cheddar',40,'g'],['spinach',60,'g'],['butter',2,'tsp'],['black-pepper',0,'taste'],['salt',0,'taste']],
+A({id:'scrambled-eggs-cheese',n:'Scrambled eggs with cheese',c:'b',d:'non',t:8,k:360,p:26,nc:2,pr:'egg',tags:'quick',
+ i:[['egg',6,'pc'],['cheddar',50,'g'],['spinach',60,'g'],['butter',2,'tsp'],['black-pepper',0,'taste'],['salt',0,'taste']],
  s:[['Whisk {0} with a pinch of salt and pepper.'],['Melt {3} in a pan on low heat, add {2} and stir until wilted.',60],['Pour in the eggs and stir slowly until softly set. Turn off the heat and fold in {1}.',150]]});
-A({id:'fried-eggs-avocado',n:'Fried eggs and avocado',c:'b',d:'non',t:10,k:310,p:15,nc:3,pr:'egg',tags:'quick',
- i:[['egg',4,'pc'],['avocado',1,'pc'],['spinach',100,'g'],['olive-oil',2,'tsp'],['chili-flakes',0,'taste'],['salt',0,'taste']],
+A({id:'fried-eggs-avocado',n:'Fried eggs and avocado',c:'b',d:'non',t:10,k:380,p:21,nc:3,pr:'egg',tags:'quick',
+ i:[['egg',6,'pc'],['avocado',1,'pc'],['spinach',100,'g'],['olive-oil',2,'tsp'],['chili-flakes',0,'taste'],['salt',0,'taste']],
  s:[['Heat half of {3} and sauté {2} with a pinch of salt until wilted. Divide onto two plates.',90],['Add the rest of the oil and fry {0} to your liking.',180],['Slice {1} and serve alongside, with {4}.']]});
 A({id:'egg-muffins',n:'Egg muffins',c:'b',d:'non',t:30,k:250,p:18,nc:3,pr:'egg',sv:4,tags:'make lunch',fr:4,rh:'Microwave 30 to 40 seconds.',
  i:[['egg',10,'pc'],['spinach',60,'g'],['bell-pepper',1,'pc'],['onion',40,'g'],['cheddar',60,'g'],['olive-oil',1,'tsp'],['salt',0,'taste'],['black-pepper',0,'taste']],
@@ -30,8 +30,8 @@ A({id:'egg-muffins',n:'Egg muffins',c:'b',d:'non',t:30,k:250,p:18,nc:3,pr:'egg',
 A({id:'sheet-pan-frittata',n:'Sheet-pan frittata',c:'b',d:'non',t:30,k:290,p:19,nc:4,pr:'egg',sv:4,tags:'make lunch',fr:4,rh:'Microwave 40 seconds, or eat cold.',
  i:[['egg',10,'pc'],['heavy-cream',2,'tbsp'],['mushrooms',150,'g'],['zucchini',1,'pc'],['onion',40,'g'],['cheddar',60,'g'],['olive-oil',1,'tbsp'],['salt',0,'taste']],
  s:[['Heat the oven to 375°F (190°C). Line a baking tray with parchment and brush with {6}.'],['Slice {2}, {3} and {4}, spread them on the tray, and roast.',480],['Whisk {0} with {1} and salt, pour over the vegetables, and sprinkle {5}.'],['Bake until set.',900],['Cut into 8 squares. 2 squares is one serving.']]});
-A({id:'mug-eggs',n:'Microwave mug eggs',c:'b',d:'non',t:3,k:220,p:15,nc:1,pr:'egg',sv:1,tags:'quick',
- i:[['egg',2,'pc'],['cheddar',15,'g'],['spinach',20,'g'],['butter',0.5,'tsp'],['salt',0,'taste']],
+A({id:'mug-eggs',n:'Microwave mug eggs',c:'b',d:'non',t:3,k:310,p:22,nc:1,pr:'egg',sv:1,tags:'quick',
+ i:[['egg',3,'pc'],['cheddar',20,'g'],['spinach',20,'g'],['butter',0.5,'tsp'],['salt',0,'taste']],
  s:[['Rub a large mug with {3}. Add {0}, {2}, {1} and a pinch of salt, and whisk with a fork.'],['Microwave 45 seconds, stir, then 30 to 45 seconds more until just set.',75]]});
 A({id:'hemp-flax-porridge',n:'Hemp and flax porridge',c:'b',d:'nog',t:10,k:360,p:14,nc:3,pr:'veg',sv:1,tags:'quick',
  i:[['hemp-hearts',3,'tbsp'],['flaxseed',1,'tbsp'],['chia',1,'tbsp'],['coconut',1,'tbsp'],['almond-milk',180,'ml'],['cinnamon',0.25,'tsp'],['walnuts',7,'g']],
@@ -41,11 +41,11 @@ A({id:'chia-hemp-jar',n:'Overnight chia and hemp jar',c:'b',d:'nog',t:5,k:340,p:
  i:[['chia',2,'tbsp'],['hemp-hearts',2,'tbsp'],['flaxseed',1,'tbsp'],['almond-milk',180,'ml'],['cinnamon',0.25,'tsp'],['walnuts',7,'g']],
  s:[['In a jar, stir {0}, {1}, {2} and {4} into {3}.'],['Stir again after 5 minutes so the chia doesn\u2019t clump, then close and refrigerate overnight.'],['In the morning, top with chopped {5}.']],
  tip:'Make 3 jars on Sunday. Pair with 1 or 2 boiled eggs for a full breakfast.'});
-A({id:'paneer-bhurji',n:'Paneer bhurji',c:'b',d:'veg',both:1,t:15,k:270,p:21,nc:5,pr:'paneer',tags:'quick',
- i:[['paneer-lowfat',200,'g'],['onion',60,'g','o'],['hing',0,'pinch','n'],['tomato',60,'g'],['green-chili',1,'pc'],['ginger',1,'tsp'],['turmeric',0.25,'tsp'],['cumin-seeds',0.5,'tsp'],['ghee',2,'tsp'],['coriander',5,'g'],['salt',0,'taste']],
+A({id:'paneer-bhurji',n:'Paneer bhurji',c:'b',d:'veg',both:1,t:15,k:370,p:31,nc:6,pr:'paneer',tags:'quick',
+ i:[['paneer-lowfat',300,'g'],['onion',60,'g','o'],['hing',0,'pinch','n'],['tomato',60,'g'],['green-chili',1,'pc'],['ginger',1,'tsp'],['turmeric',0.25,'tsp'],['cumin-seeds',0.5,'tsp'],['ghee',2,'tsp'],['coriander',5,'g'],['salt',0,'taste']],
  s:[['Crumble {0} with your fingers.'],['Heat {8} and add {7}. [[Add {1} and sauté until soft.||Add a pinch of {2}.]]',150],['Add {5}, {4} and {3}. Cook until soft, then add {6} and salt.',180],['Add the paneer and cook 2 minutes, stirring. Finish with {9}.',120]]});
-A({id:'tofu-bhurji',n:'Tofu bhurji',c:'b',d:'nog',t:15,k:250,p:22,nc:3,pr:'tofu',tags:'quick',
- i:[['tofu',300,'g'],['tomato',60,'g'],['spinach',60,'g'],['ginger',1,'tsp'],['green-chili',1,'pc'],['hing',0,'pinch'],['turmeric',0.25,'tsp'],['cumin-seeds',0.5,'tsp'],['olive-oil',2,'tsp'],['coriander',5,'g'],['salt',0,'taste']],
+A({id:'tofu-bhurji',n:'Tofu bhurji',c:'b',d:'nog',t:15,k:315,p:29,nc:4,pr:'tofu',tags:'quick',
+ i:[['tofu',400,'g'],['tomato',60,'g'],['spinach',60,'g'],['ginger',1,'tsp'],['green-chili',1,'pc'],['hing',0,'pinch'],['turmeric',0.25,'tsp'],['cumin-seeds',0.5,'tsp'],['olive-oil',2,'tsp'],['coriander',5,'g'],['salt',0,'taste']],
  s:[['Press {0} dry with a towel and crumble it.'],['Heat {8}, add {7} and {5}, then {3}, {4} and {1}. Cook until soft.',180],['Add the tofu, {6} and salt. Cook, stirring, then fold in {2}.',240],['Finish with {9}.']]});
 A({id:'cauliflower-upma',n:'Cauliflower upma',c:'b',d:'veg',both:1,t:15,k:150,p:5,nc:6,pr:'veg',tags:'',
  i:[['cauliflower-rice',340,'g'],['peanuts',20,'g'],['mustard-seeds',0.5,'tsp'],['curry-leaves',1,'pc'],['green-chili',1,'pc'],['ginger',1,'tsp'],['onion',40,'g','o'],['hing',0,'pinch','n'],['ghee',2,'tsp'],['lemon',0.5,'pc'],['coriander',5,'g'],['salt',0,'taste']],
@@ -86,14 +86,14 @@ A({id:'tofu-tikka',n:'Tofu tikka',c:'m',d:'nog',t:30,k:330,p:31,nc:5,pr:'tofu',t
 A({id:'baked-salmon',n:'Baked salmon with spinach',c:'m',d:'non',t:25,k:450,p:37,nc:2,pr:'fish',tags:'thaw',fr:2,rh:'Eat cold in a salad, or warm gently.',
  i:[['salmon',2,'pc'],['butter',1,'tbsp'],['lemon',1,'pc'],['garlic',2,'pc'],['spinach',200,'g'],['olive-oil',1,'tsp'],['black-pepper',0,'taste'],['salt',0,'taste']],
  s:[['Heat the oven to 400°F (200°C). Place {0} on a lined tray, season with salt and pepper.'],['Melt {1} with grated {3} and the juice of half of {2}, and spoon over the salmon.'],['Bake until it flakes easily.',780],['Meanwhile, sauté {4} in {5} with a pinch of salt.',120],['Serve with the remaining lemon in wedges.']]});
-A({id:'lemon-garlic-tilapia',n:'Lemon garlic tilapia',c:'m',d:'non',t:20,k:300,p:42,nc:6,pr:'fish',tags:'week thaw',fr:2,rh:'Warm gently, or flake into a salad.',
- i:[['tilapia',400,'g'],['butter',1,'tbsp'],['olive-oil',1,'tsp'],['lemon',1,'pc'],['garlic',3,'pc'],['paprika',0.5,'tsp'],['green-beans',250,'g'],['salt',0,'taste']],
+A({id:'lemon-garlic-tilapia',n:'Lemon garlic tilapia',c:'m',d:'non',t:20,k:350,p:52,nc:6,pr:'fish',tags:'week thaw',fr:2,rh:'Warm gently, or flake into a salad.',
+ i:[['tilapia',500,'g'],['butter',1,'tbsp'],['olive-oil',1,'tsp'],['lemon',1,'pc'],['garlic',3,'pc'],['paprika',0.5,'tsp'],['green-beans',250,'g'],['salt',0,'taste']],
  s:[['Pat {0} dry and season with {5} and salt.'],['Heat {2} in a large pan and cook the fish 3 minutes per side.',360],['Lower the heat, add {1} and sliced {4}, and spoon over the fish. Squeeze in the juice of {3}.',60],['Steam or sauté {6} on the side.',360]]});
-A({id:'tilapia-masala-fry',n:'Tilapia masala fry',c:'m',d:'non',t:25,k:260,p:41,nc:2,pr:'fish',tags:'week thaw',fr:2,rh:'Re-crisp in a pan or air fryer.',
- i:[['tilapia',400,'g'],['turmeric',0.25,'tsp'],['chili-powder',1,'tsp'],['coriander-powder',1,'tsp'],['ginger',1,'tsp'],['garlic',2,'pc'],['lemon',0.5,'pc'],['mustard-oil',1,'tbsp'],['salt',0,'taste']],
+A({id:'tilapia-masala-fry',n:'Tilapia masala fry',c:'m',d:'non',t:25,k:310,p:51,nc:2,pr:'fish',tags:'week thaw',fr:2,rh:'Re-crisp in a pan or air fryer.',
+ i:[['tilapia',500,'g'],['turmeric',0.25,'tsp'],['chili-powder',1,'tsp'],['coriander-powder',1,'tsp'],['ginger',1,'tsp'],['garlic',2,'pc'],['lemon',0.5,'pc'],['mustard-oil',1,'tbsp'],['salt',0,'taste']],
  s:[['Mix {1}, {2}, {3}, grated {4} and {5}, the juice of {6} and salt into a paste.'],['Coat {0} and rest 10 minutes.',600],['Heat {7} in a pan and fry the fish until crisp and cooked through. No rava or besan coating.',420]]});
-A({id:'tandoori-fish',n:'Tandoori fish',c:'m',d:'non',t:30,k:275,p:44,nc:3,pr:'fish',tags:'thaw',fr:2,rh:'Air-fry 3 minutes.',
- i:[['tilapia',400,'g'],['greek-yogurt',80,'g'],['ginger',1,'tsp'],['garlic',2,'pc'],['chili-powder',1,'tsp'],['garam-masala',0.5,'tsp'],['turmeric',0.25,'tsp'],['lemon',0.5,'pc'],['mustard-oil',2,'tsp'],['salt',0,'taste']],
+A({id:'tandoori-fish',n:'Tandoori fish',c:'m',d:'non',t:30,k:325,p:54,nc:3,pr:'fish',tags:'thaw',fr:2,rh:'Air-fry 3 minutes.',
+ i:[['tilapia',500,'g'],['greek-yogurt',80,'g'],['ginger',1,'tsp'],['garlic',2,'pc'],['chili-powder',1,'tsp'],['garam-masala',0.5,'tsp'],['turmeric',0.25,'tsp'],['lemon',0.5,'pc'],['mustard-oil',2,'tsp'],['salt',0,'taste']],
  s:[['Mix {1}, {2}, {3}, {4}, {5}, {6}, juice of {7}, {8} and salt.'],['Coat {0} and marinate 20 minutes.',1200],['Bake at 450°F (230°C) or air-fry at 400°F (200°C) until charred at the edges.',600]],
  tip:'Works with salmon too. Serve with kachumber and raita.'});
 A({id:'garlic-butter-shrimp',n:'Garlic butter shrimp with zucchini noodles',c:'m',d:'non',t:20,k:280,p:42,nc:5,pr:'fish',tags:'week thaw',fr:2,
@@ -127,14 +127,14 @@ A({id:'chicken-stir-fry',n:'Chicken stir-fry',c:'m',d:'non',t:20,k:340,p:49,nc:8
  s:[['Slice {0} thinly. Cut {1}, {2} and {3}.'],['Heat {8} on high heat and stir-fry the chicken until cooked. Remove.',300],['Add {5}, {6} and the vegetables, and stir-fry until crisp-tender.',240],['Return the chicken, add {4} and {7}, and toss.',60]]});
 
 // Soups and salads
-A({id:'chicken-pepper-soup',n:'Chicken pepper soup',c:'ss',d:'non',t:35,k:260,p:30,nc:5,pr:'chicken',tags:'full make freeze',fr:3,rh:'Reheat on the stove.',
- i:[['chicken-thigh',300,'g'],['onion',50,'g'],['tomato',60,'g'],['ginger',1,'tsp'],['garlic',3,'pc'],['black-pepper',1.5,'tsp'],['cumin-seeds',0.5,'tsp'],['turmeric',0.25,'tsp'],['curry-leaves',1,'pc'],['ghee',1,'tsp'],['chicken-broth',500,'ml'],['coriander',5,'g'],['salt',0,'taste']],
+A({id:'chicken-pepper-soup',n:'Chicken pepper soup',c:'ss',d:'non',t:35,k:330,p:40,nc:5,pr:'chicken',tags:'full make freeze',fr:3,rh:'Reheat on the stove.',
+ i:[['chicken-thigh',400,'g'],['onion',50,'g'],['tomato',60,'g'],['ginger',1,'tsp'],['garlic',3,'pc'],['black-pepper',1.5,'tsp'],['cumin-seeds',0.5,'tsp'],['turmeric',0.25,'tsp'],['curry-leaves',1,'pc'],['ghee',1,'tsp'],['chicken-broth',500,'ml'],['coriander',5,'g'],['salt',0,'taste']],
  s:[['Crush {5} and {6} coarsely.'],['Heat {9}, add {8} and {1}. Sauté until soft.',180],['Add {3}, {4}, {2}, {7} and half the pepper mix.',120],['Add {0} in pieces, {10} and 1 cup water. Simmer until the chicken is tender.',1200],['Add the rest of the pepper, salt to taste, and {11}.']]});
-A({id:'chicken-zoodle-soup',n:'Chicken zoodle soup',c:'ss',d:'non',t:30,k:270,p:36,nc:6,pr:'chicken',tags:'full make',fr:3,rh:'Reheat on the stove.',
- i:[['chicken-breast',300,'g'],['zucchini',2,'pc'],['celery',100,'g'],['onion',50,'g'],['garlic',2,'pc'],['chicken-broth',1000,'ml'],['olive-oil',2,'tsp'],['lemon',0.5,'pc'],['black-pepper',0,'taste'],['salt',0,'taste']],
+A({id:'chicken-zoodle-soup',n:'Chicken zoodle soup',c:'ss',d:'non',t:30,k:330,p:47,nc:6,pr:'chicken',tags:'full make',fr:3,rh:'Reheat on the stove.',
+ i:[['chicken-breast',400,'g'],['zucchini',2,'pc'],['celery',100,'g'],['onion',50,'g'],['garlic',2,'pc'],['chicken-broth',1000,'ml'],['olive-oil',2,'tsp'],['lemon',0.5,'pc'],['black-pepper',0,'taste'],['salt',0,'taste']],
  s:[['Heat {6} and sauté {3}, {4} and {2}.',240],['Add {5} and {0} whole. Simmer until cooked, then shred the chicken.',1080],['Spiralize {1}, add to the pot, and cook just 2 minutes.',120],['Finish with the juice of {7}, pepper and salt.']]});
-A({id:'lemon-coriander-soup',n:'Lemon coriander chicken soup',c:'ss',d:'non',t:30,k:215,p:30,nc:5,pr:'chicken',tags:'full',fr:3,rh:'Reheat on the stove, then add fresh lemon.',
- i:[['chicken-breast',250,'g'],['cabbage',100,'g'],['bell-pepper',0.5,'pc'],['mushrooms',80,'g'],['ginger',1,'tsp'],['garlic',2,'pc'],['chicken-broth',1000,'ml'],['lemon',1,'pc'],['coriander',20,'g'],['olive-oil',1,'tsp'],['black-pepper',0,'taste'],['salt',0,'taste']],
+A({id:'lemon-coriander-soup',n:'Lemon coriander chicken soup',c:'ss',d:'non',t:30,k:275,p:40,nc:5,pr:'chicken',tags:'full',fr:3,rh:'Reheat on the stove, then add fresh lemon.',
+ i:[['chicken-breast',350,'g'],['cabbage',100,'g'],['bell-pepper',0.5,'pc'],['mushrooms',80,'g'],['ginger',1,'tsp'],['garlic',2,'pc'],['chicken-broth',1000,'ml'],['lemon',1,'pc'],['coriander',20,'g'],['olive-oil',1,'tsp'],['black-pepper',0,'taste'],['salt',0,'taste']],
  s:[['Simmer {0} in {6} until cooked, then shred.',900],['In {9}, sauté {4}, {5}, finely chopped {1}, {2} and {3}.',180],['Add the broth and chicken, and simmer. No cornflour.',300],['Turn off the heat, add the juice of {7}, chopped {8} and pepper.']]});
 A({id:'broccoli-cheddar-soup',n:'Broccoli cheddar soup',c:'ss',d:'veg',both:1,t:25,k:400,p:18,nc:7,pr:'veg',tags:'add heavy',fr:3,rh:'Reheat gently on low heat.',
  i:[['broccoli',300,'g'],['cheddar',100,'g'],['heavy-cream',4,'tbsp'],['onion',40,'g','o'],['garlic',2,'pc','o'],['hing',0,'pinch','n'],['butter',1,'tbsp'],['water',400,'ml'],['black-pepper',0,'taste'],['salt',0,'taste']],
@@ -153,8 +153,8 @@ A({id:'kachumber',n:'Kachumber',c:'ss',d:'veg',both:1,t:10,k:40,p:1,nc:5,pr:'veg
 A({id:'avocado-chaat',n:'Avocado chaat salad',c:'ss',d:'veg',both:1,t:10,k:150,p:2,nc:4,pr:'veg',tags:'add quick',
  i:[['avocado',1,'pc'],['cucumber',0.5,'pc'],['tomato',0.5,'pc'],['onion',20,'g','o'],['green-chili',1,'pc'],['lemon',0.5,'pc'],['chaat-masala',0.5,'tsp'],['coriander',5,'g'],['salt',0,'taste']],
  s:[['Dice {0}, {1}, {2}[[ and {3}|| ]].'],['Toss gently with {4}, the juice of {5}, {6}, {7} and salt.']]});
-A({id:'chicken-avocado-salad',n:'Grilled chicken avocado salad',c:'ss',d:'non',t:20,k:390,p:36,nc:4,pr:'chicken',tags:'full lunch',
- i:[['chicken-breast',300,'g'],['avocado',1,'pc'],['lettuce',200,'g'],['cucumber',0.5,'pc'],['olive-oil',1,'tbsp'],['lemon',1,'pc'],['black-pepper',0,'taste'],['salt',0,'taste']],
+A({id:'chicken-avocado-salad',n:'Grilled chicken avocado salad',c:'ss',d:'non',t:20,k:450,p:47,nc:4,pr:'chicken',tags:'full lunch',
+ i:[['chicken-breast',400,'g'],['avocado',1,'pc'],['lettuce',200,'g'],['cucumber',0.5,'pc'],['olive-oil',1,'tbsp'],['lemon',1,'pc'],['black-pepper',0,'taste'],['salt',0,'taste']],
  s:[['Season {0} and pan-grill until cooked through. Rest and slice.',720],['Chop {2} and {3}, and slice {1}.'],['Whisk {4} with the juice of {5}, salt and pepper. Toss everything together.']],
  tip:'For work, pack the dressing separately.'});
 A({id:'egg-salad',n:'Egg salad',c:'ss',d:'non',t:15,k:320,p:20,nc:2,pr:'egg',tags:'full make lunch',fr:3,rh:'Eat cold.',
