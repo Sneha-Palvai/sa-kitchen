@@ -134,7 +134,7 @@ F('mustard-oil','Mustard oil',A,'a','a',[884,0,0,100,0],['1 tsp',4.5],{tsp:4.5,b
 F('coconut-oil','Coconut oil',A,'a','a',[892,0,0,100,0],['1 tsp',4.5],{tsp:4.5,buy:[400,'jar'],st:1,gi:NO,note:'Keto fat. Measure it.'});
 
 // Spices (pantry basics)
-function SP(k,n,al){ F(k,n,S,'g','g',[300,10,30,10,20],['1 tsp',2],{tsp:2.5,st:1,gi:NO,note:'Spice, used in tiny amounts.',al:al||[]}); }
+function SP(k,n,al){ F(k,n,S,'g','g',[250,10,15,10,25],['1 tsp',2],{tsp:2.5,pc:0.3,st:1,gi:NO,note:'Spice, used in tiny amounts.',al:al||[]}); }
 SP('salt','Salt',['namak']); SP('black-pepper','Black pepper',['kali mirch','pepper powder']); SP('turmeric','Turmeric',['haldi']);
 SP('cumin-seeds','Cumin seeds',['jeera']); SP('cumin-powder','Ground cumin',['jeera powder']); SP('coriander-powder','Coriander powder',['dhania powder']);
 SP('garam-masala','Garam masala'); SP('chili-powder','Kashmiri chili powder',['red chili powder','lal mirch']); SP('mustard-seeds','Mustard seeds',['rai','sarson']);

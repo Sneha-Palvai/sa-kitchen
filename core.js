@@ -100,7 +100,7 @@ C.qty = function(amt, unit, units){
   if(unit === 'pc') return C.frac(amt);
   return C.frac(amt) + ' ' + unit + (unit === 'cup' && amt > 1 ? 's' : '');
 };
-function lower(s){ return s ? s.charAt(0).toLowerCase() + s.slice(1) : s; }
+function lower(s){ if(!s) return s; if(/^(Kashmiri|Dijon|Greek|Brussels)/.test(s)) return s; return s.charAt(0).toLowerCase() + s.slice(1); }
 C.ingName = function(ing, amt){
   if(ing[4]) return ing[4];
   var f = C.food(ing[0]); var n = f ? lower(f.n) : (ing[0] || '');
@@ -152,14 +152,19 @@ C.stepText = function(r, s, f, nog, html){
     return html ? '<b>' + C.esc(x.q) + ' ' + C.esc(x.n) + '</b>' : x.q + ' ' + x.n;
   }).replace(/ +([,.])/g, '$1').replace(/ {2,}/g, ' ');
 };
+var NCACHE = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
 C.nutri = function(r){
   if(r.k) return {k:r.k, p:r.p || 0, nc:r.nc || 0, est:true};
+  if(NCACHE && NCACHE.has(r)) return NCACHE.get(r);
+  var out = calcN(r); if(NCACHE) NCACHE.set(r, out); return out;
+};
+function calcN(r){
   var t = {k:0, p:0, nc:0};
   (r.i || []).forEach(function(ing){ var f = C.food(ing[0]); if(!f || !f.v) return; var g = C.toGrams(ing[0], ing[1] || 0, ing[2]);
     t.k += f.v[0]*g/100; t.p += f.v[1]*g/100; t.nc += f.v[2]*g/100; });
   var sv = r.sv || 2;
   return {k:Math.round(t.k/sv), p:Math.round(t.p/sv), nc:Math.round(t.nc/sv*10)/10, est:true};
-};
+}
 C.isFav = function(id){ return (C.D.settings.favs || []).indexOf(id) >= 0; };
 
 /* ---------- ingredient line parser (for your own recipes and grocery items) ---------- */
@@ -208,9 +213,9 @@ C.plan = function(wk){ return C.D.plans[wk] || {}; };
 C.slot = function(wk, di, s){ var d = C.plan(wk)['d' + di]; return d && d[s] ? d[s] : null; };
 C.eff = function(sl, uid){ if(!sl) return null; return (sl.p && sl.p[uid]) || sl.r || null; };
 C.dayTotal = function(wk, di, uid){
-  var t = {k:0, p:0, heavy:0, n:0, main:0};
+  var t = {k:0, p:0, nc:0, heavy:0, n:0, main:0};
   C.SLOTS.forEach(function(s){ var r = C.rec(C.eff(C.slot(wk, di, s), uid)); if(!r) return; var n = C.nutri(r), m = C.portion(uid);
-    t.k += n.k*m; t.p += n.p*m; t.n++; if(s !== 'S') t.main++; if(C.has(r,'heavy')) t.heavy++; });
+    t.k += n.k*m; t.p += n.p*m; t.nc += n.nc*m; t.n++; if(s !== 'S') t.main++; if(C.has(r,'heavy')) t.heavy++; });
   return t;
 };
 C.weekBreads = function(wk){ var n = 0; for(var d=0; d<7; d++) C.SLOTS.forEach(function(s){ var sl = C.slot(wk, d, s); if(!sl) return;
@@ -229,7 +234,7 @@ C.suggestWeek = function(wk, diet){
   function pool(list){ var fresh = list.filter(function(r){ return !recent[r.id]; }); var base = fresh.length >= 3 ? fresh : list;
     var out = []; base.forEach(function(r){ out.push(r); if(favs.indexOf(r.id) >= 0) out.push(r); }); return shuffle(out); }
   var bf = pool(all.filter(function(r){ return r.c === 'b'; }));
-  var mains = all.filter(function(r){ return r.c === 'm' && !C.has(r,'occ'); });
+  var mains = all.filter(function(r){ return r.c === 'm' && !C.has(r,'occ') && C.fits(r, 'D'); });
   var fulls = pool(all.filter(function(r){ return r.c === 'ss' && C.has(r,'full'); }));
   var order = shuffle(['chicken','fish','paneer','egg','chicken','fish','tofu']);
   var used = {}, mutton = 0, fields = {}, plan = C.plan(wk);
@@ -276,6 +281,66 @@ C.needsSig = function(wk, diet){
   return String(h);
 };
 
+C.ncLimit = function(uid){ var v = C.prof(uid).ncLimit; return v > 0 ? v : 30; };
+C.highCarb = function(tot, uid){ return tot.main >= 2 && tot.nc > C.ncLimit(uid); };
+C.bestFor = function(r){
+  var SN = {B:'Breakfast', L:'Lunch', D:'Dinner', S:'Snack'};
+  var slots, why = r.bw || '';
+  if(r.bf) slots = r.bf.split('');
+  else if(r.c === 'b') { slots = ['B']; why = why || 'A protein-rich start to the day.'; }
+  else if(r.c === 'm' || (r.c === 'ss' && C.has(r,'full'))){
+    if(C.has(r,'heavy')){ slots = ['L']; why = why || 'Rich dish, easier to digest earlier in the day.'; }
+    else if(C.has(r,'lunch') || C.has(r,'make')){ slots = ['L','D']; why = why || 'Travels well, so great for work lunches too.'; }
+    else { slots = ['D','L']; why = why || 'Quick and light, good for dinner.'; }
+  }
+  else if(r.c === 'ss' || r.c === 'sd'){ slots = ['L','D']; why = why || 'Pair with a protein at lunch or dinner.'; }
+  else if(r.c === 'sn'){ slots = ['S']; why = why || 'Between meals, only if you\u2019re hungry.'; }
+  else if(r.c === 'br'){ slots = ['B','L','D']; why = why || 'Occasional, up to 2 a week.'; }
+  else slots = ['B','L','D','S'];
+  var names = slots.map(function(x){ return SN[x]; });
+  var text = names.length > 2 ? 'Any meal' : names.join(' or ');
+  return {slots:slots, text:text, why:why};
+};
+C.fits = function(r, slot){ return C.bestFor(r).slots.indexOf(slot) >= 0; };
+/* one ingredient as a grocery need (null for pantry basics) */
+C.ingNeed = function(ing, f){
+  var key = ing[0], food = C.food(key), u = ing[2], amt = (ing[1] || 0) * f;
+  if(food && food.st) return null;
+  if(key === 'water') return null;
+  if(u === 'taste' || u === 'pinch') return {key:key, name: food ? food.n : C.ingName(ing, 1), amt:0, u:'pc', sec: food ? food.s : 'Other'};
+  if(food && food.cnt && u === 'pc') return {key:key, name:food.n, amt:amt, u:'pc', sec:food.s};
+  if(u === 'ml') return {key:key, name: food ? food.n : C.ingName(ing, amt), amt:amt, u:'ml', sec: food ? food.s : 'Other'};
+  return {key:key, name: food ? food.n : C.ingName(ing, amt), amt:C.toGrams(key, amt, u), u:'g', sec: food ? food.s : 'Other'};
+};
+C.recipeNeeds = function(r, servings, nog){
+  var f = servings / (r.sv || 2), out = {};
+  C.ings(r, nog).forEach(function(o){
+    var n = C.ingNeed(o.ing, f); if(!n) return;
+    var k = n.key || ('x:' + n.name);
+    if(out[k]){ if(out[k].u !== n.u){ out[k].amt = C.toGrams(n.key, out[k].amt, out[k].u === 'g' ? 'g' : out[k].u); out[k].u = 'g'; n.amt = C.toGrams(n.key, n.amt, n.u === 'g' ? 'g' : n.u); } out[k].amt += n.amt; }
+    else out[k] = n;
+  });
+  return Object.keys(out).map(function(k){ return out[k]; });
+};
+/* what you have: items bought or marked Have it */
+C.haveKeys = function(){
+  var h = {}; C.D.groceries.forEach(function(i){ if((i.b || i.h) && i.key) h[i.key] = 1; }); return h;
+};
+C.cookable = function(diet){
+  var have = C.haveKeys(); if(!Object.keys(have).length) return {ready:[], almost:[], any:false};
+  var ready = [], almost = [];
+  C.all().forEach(function(r){
+    if(!C.dietOk(r, diet) || r.c === 'dr') return;
+    var needs = {}; C.ings(r, diet === 'nog' && r.both).forEach(function(o){ var f = C.food(o.ing[0]); if(!o.ing[0] || (f && f.st) || o.ing[0] === 'water') return; needs[o.ing[0]] = 1; });
+    var keys = Object.keys(needs); if(keys.length < 2) return;
+    var miss = keys.filter(function(k){ return !have[k]; }), got = keys.length - miss.length;
+    if(!miss.length) ready.push({r:r, miss:[]});
+    else if(miss.length <= 2 && got >= 2) almost.push({r:r, miss:miss});
+  });
+  almost.sort(function(a, b){ return a.miss.length - b.miss.length; });
+  return {ready:ready, almost:almost, any:true};
+};
+
 /* ---------- groceries from plan ---------- */
 C.weekNeeds = function(wk, diet){
   var uids = C.uids(), need = {};
@@ -302,11 +367,8 @@ C.weekNeeds = function(wk, diet){
         var r = C.rec(id); if(!r) return;
         var f = por[id] / (r.sv || 2), nog = diet === 'nog' && r.both;
         C.ings(r, nog).forEach(function(o){
-          var ing = o.ing, key = ing[0], food = C.food(key), u = ing[2], amt = (ing[1] || 0) * f;
-          if(u === 'taste' || u === 'pinch'){ if(!food || !food.st) add(key, C.ingName(ing, 1), 0, 'pc', r.n, d); return; }
-          if(food && food.cnt && u === 'pc'){ add(key, '', amt, 'pc', r.n, d); return; }
-          if(u === 'ml') { add(key, C.ingName(ing, amt), amt, 'ml', r.n, d); return; }
-          add(key, C.ingName(ing, amt), C.toGrams(key, amt, u), 'g', r.n, d);
+          var n = C.ingNeed(o.ing, f); if(!n) return;
+          add(n.key, n.name, n.amt, n.u, r.n, d);
         });
       });
     });

@@ -183,7 +183,7 @@ function renderToday(){
       + '<div class="row" style="gap:8px;margin-top:12px"><button class="btn pri sm grow" data-act="suggestToday">'+I('sparkle',16)+' Suggest my week</button><button class="btn sm grow" data-act="gotoPlan">Pick meals</button></div></div>';
   } else {
     var tot = C.dayTotal(wk, d, me);
-    h += '<p class="small muted" style="margin:-4px 2px 8px">Showing your portion ('+C.portion(me)+'×), about '+fmtN(tot.k)+' kcal and '+fmtN(tot.p)+' g protein planned</p><div class="card list">';
+    h += '<p class="small muted" style="margin:-4px 2px 8px">Showing your portion ('+C.portion(me)+'×), about '+fmtN(tot.k)+' kcal, '+fmtN(tot.p)+' g protein and '+fmtN(tot.nc)+' g net carbs planned</p><div class="card list">';
     C.SLOTS.forEach(function(s){
       var sl = C.slot(wk, d, s), id = C.eff(sl, me), r = C.rec(id);
       if(!r){
@@ -258,7 +258,13 @@ function recipesBody(){
     h += list.length ? '<div class="col">'+list.map(function(r){ return rcard(r, true); }).join('')+'</div>' : '<p class="empty">No recipes match. Try fewer filters or another word.</p>';
     return h;
   }
-  var rows = [];
+  var rows = [], ck = C.cookable(pref.diet);
+  if(ck.any && (ck.ready.length || ck.almost.length)){
+    var cards = ck.ready.concat(ck.almost).slice(0, 8);
+    h += '<div class="rowh"><h2 class="h3">With what you have</h2><button class="link" data-act="cookHave">See all</button></div><div class="hs">'
+      + cards.map(function(o){ return '<button class="rc" data-act="openRec" data-id="'+esc(o.r.id)+'">'+mark(o.r.d)+'<span class="nm">'+esc(o.r.n)+'</span>'
+        + (o.miss.length ? '<span class="pill amber">Missing: '+esc(o.miss.map(function(k){ var f = C.food(k); return f ? f.n.toLowerCase() : k; }).join(', '))+'</span>' : '<span class="pill green">Ready to cook</span>')+'</button>'; }).join('') + '</div>';
+  }
   var fav = list.filter(function(r){ return C.isFav(r.id); }); if(fav.length) rows.push(['Favorites', fav, {fav:true}]);
   var quick = list.filter(function(r){ return r.t <= 10; }); rows.push(['Quick, under 10 min', quick, {time:10}]);
   C.CAT_ORDER.forEach(function(c){ var l = list.filter(function(r){ return r.c === c; }); if(l.length) rows.push([C.CATS[c], l, {cat:c}]); });
@@ -292,10 +298,12 @@ function renderRecipe(){
   }
   var st = ui.rp;
   var f = st.sv / (r.sv || 2), n = C.nutri(r), wm = C.portion(st.who), pt = C.partner();
-  var h = '<header class="top"><button class="ib" data-act="back" aria-label="Back">'+I('back',22)+'</button><div class="row" style="gap:4px"><button class="ib" data-act="editRec" aria-label="Edit recipe">'+I('edit')+'</button>'
+  var h = '<header class="top"><button class="ib" data-act="back" aria-label="Back">'+I('back',22)+'</button><div class="row" style="gap:4px"><button class="ib" data-act="recGro" aria-label="Add ingredients to groceries">'+I('cart')+'</button><button class="ib" data-act="editRec" aria-label="Edit recipe">'+I('edit')+'</button>'
     + '<button class="ib'+(C.isFav(r.id)?' fav':'')+'" data-act="fav" data-id="'+esc(r.id)+'" aria-label="'+(C.isFav(r.id)?'Remove from favorites':'Add to favorites')+'" aria-pressed="'+C.isFav(r.id)+'">'+I(C.isFav(r.id)?'starf':'star')+'</button></div></header>';
   h += '<div class="row" style="gap:6px">'+mark(st.nog ? 'nog' : r.d)+'<span class="small muted">'+C.CATS[r.c]+(r.c==='m'?', lunch or dinner':'')+'</span></div>';
   h += '<h1 class="h1" style="margin:6px 0 2px">'+esc(r.n)+'</h1><p class="muted small">'+r.t+' min'+(r._kind==='custom'?', added by '+esc(C.prof(r._by).name):'')+(r._kind==='edit'?', edited by '+esc(C.prof(r._by).name):'')+'</p>';
+  var bfr = C.bestFor(r);
+  h += '<p class="small" style="margin-top:8px"><b>Best for:</b> '+esc(bfr.text)+(bfr.why ? '<span class="muted">. '+esc(bfr.why)+'</span>' : '')+'</p>';
   h += '<div class="por"><div class="row between"><span class="small" style="font-weight:600">'+(st.who===uid()?'Your portion':esc(C.prof(st.who).name)+'\u2019s portion')+' ('+wm+'×)</span>'
     + (pt ? '<div class="seg mini">'+[uid(), pt].map(function(u){ return '<button class="'+(st.who===u?'on':'')+'" data-act="who" data-v="'+u+'">'+esc(C.prof(u).name)+'</button>'; }).join('')+'</div>' : '')+'</div>'
     + '<div class="nu"><span>≈'+fmtN(n.k*wm)+' kcal</span><span>'+fmtN(n.p*wm)+' g protein</span><span>'+(Math.round(n.nc*wm*10)/10)+' g net carbs</span></div><p class="tiny muted">Estimates</p></div>';
@@ -379,7 +387,8 @@ function renderPlan(){
     h += '<button class="'+(d===sel?'on':'')+(isT?' today':'')+'" data-act="pday" data-v="'+d+'" aria-label="'+C.DAYS[d]+'"><span>'+C.DSH[d]+'</span><span class="dd">'+C.addD(md, d).getDate()+'</span><span class="pd'+(has?' f':'')+'"></span></button>'; }
   h += '</div>';
   var tot = C.dayTotal(wk, sel, who);
-  h += '<div class="tot"><span>'+C.DAYS[sel]+(pt?' <span class="seg mini inl">'+[uid(), pt].map(function(u){ return '<button class="'+(who===u?'on':'')+'" data-act="pwho" data-v="'+u+'">'+esc(C.prof(u).name)+'</button>'; }).join('')+'</span>':'')+'</span><b>≈'+fmtN(tot.k)+' kcal, '+fmtN(tot.p)+' g protein</b></div>';
+  h += '<div class="tot"><span>'+C.DAYS[sel]+(pt?' <span class="seg mini inl">'+[uid(), pt].map(function(u){ return '<button class="'+(who===u?'on':'')+'" data-act="pwho" data-v="'+u+'">'+esc(C.prof(u).name)+'</button>'; }).join('')+'</span>':'')+'</span><b>≈'+fmtN(tot.k)+' kcal, '+fmtN(tot.p)+' g protein, '+fmtN(tot.nc)+' g net carbs</b></div>';
+  if(C.highCarb(tot, who)) h += '<p class="flag">'+I('alert',16)+'<span>About '+fmtN(tot.nc)+' g net carbs, above the '+C.ncLimit(who)+' g limit. Swapping a paneer or curry dish for fish, eggs or a salad usually brings it down.</span></p>';
   if(C.lowDay(tot, who)) h += '<p class="flag">'+I('alert',16)+'<span>This day looks light, about '+fmtN(tot.k)+' kcal. Very low days can leave you tired and hungry, and make workouts harder. Consider a side, a snack, or a larger portion.</span></p>';
   if(tot.heavy) h += '<p class="flag">'+I('alert',16)+'<span>Heavier day: a creamy or rich dish is planned. Keep the other meals light.</span></p>';
   h += '<div class="card list">';
@@ -417,8 +426,9 @@ function pickerBody(s){
   var cats = s === 'B' ? ['b'] : s === 'S' ? ['sn','dr'] : ['m','ss','br','sd'];
   var q = FD.norm(ui.pq || ''), cat = ui.pcat || cats[0], h = '';
   var list = C.all().filter(function(r){ return C.dietOk(r, pref.diet) && (q ? FD.norm(r.n).indexOf(q) >= 0 : r.c === cat); });
+  list.sort(function(a, b){ return (C.fits(b, s) ? 1 : 0) - (C.fits(a, s) ? 1 : 0); });
   if(!q) h += '<div class="chips scroll">'+cats.map(function(c){ return '<button class="chip'+(c===cat?' on':'')+'" data-act="pcat" data-v="'+c+'">'+C.CATS[c]+'</button>'; }).join('')+'</div>';
-  h += '<div class="col" style="margin-top:8px">'+list.map(function(r){ var n = C.nutri(r); return '<button class="opt" data-act="pick" data-id="'+esc(r.id)+'"><span class="row" style="gap:8px">'+mark(r.d)+esc(r.n)+'</span><span class="muted small">≈'+fmtN(n.k*C.portion(uid()))+' kcal</span></button>'; }).join('')+(list.length?'':'<p class="empty">No recipes found.</p>')+'</div>';
+  h += '<div class="col" style="margin-top:8px">'+list.map(function(r){ var n = C.nutri(r), fit = C.fits(r, s); return '<button class="opt" data-act="pick" data-id="'+esc(r.id)+'"><span class="row" style="gap:8px">'+mark(r.d)+'<span>'+esc(r.n)+(fit ? '' : '<span class="sub">Better for '+esc(C.bestFor(r).text.toLowerCase())+'</span>')+'</span></span><span class="muted small">≈'+fmtN(n.k*C.portion(uid()))+' kcal</span></button>'; }).join('')+(list.length?'':'<p class="empty">No recipes found.</p>')+'</div>';
   return h;
 }
 function calSheet(){
@@ -464,7 +474,7 @@ function renderGroceries(){
   var sig = D.settings.gsig || {}, stale = [];
   Object.keys(sig).forEach(function(wk){ if(wk < C.wk(C.today())) return; if(!items.some(function(i){ return i.src === 'plan' && i.wk === wk && !i.b; })) return; if(D.plans[wk] && C.needsSig(wk, pref.diet) !== sig[wk]) stale.push(wk); });
   stale.forEach(function(wk){ h += '<div class="rem"><span class="remi">'+I('alert',18)+'</span><div class="grow"><p class="nm">Your plan changed</p><p class="sub">Meals for the week of '+C.shortDate(C.parse(wk))+' changed after you added items.</p></div><button class="btn sm" data-act="review" data-v="'+wk+'">Review</button></div>'; });
-  h += '<div class="row" style="gap:8px;margin-bottom:10px"><button class="btn sm grow" data-act="review">'+I('cal',16)+' From your plan</button><button class="btn sm grow" data-act="regulars">'+I('star',16)+' Regulars</button></div>';
+  h += '<div class="row" style="gap:8px;margin-bottom:10px"><button class="btn sm grow" data-act="review">'+I('cal',16)+' From your plan</button><button class="btn sm grow" data-act="regulars">'+I('star',16)+' Regulars</button></div><button class="btn sm full" style="margin-bottom:10px" data-act="cookHave">'+I('chef',16)+' What can I cook?</button>';
   h += '<div class="chips scroll">'+[['all','Whole week'],['mw','Mon to Wed'],['tw','Thu to Sun']].map(function(o){ return '<button class="chip'+((ui.grg||'all')===o[0]?' on':'')+'" data-act="grg" data-v="'+o[0]+'">'+o[1]+'</button>'; }).join('')+'</div>';
   var cnt = {buy:items.filter(function(i){ return !i.b && !i.h; }).length, got:items.filter(function(i){ return i.b; }).length, have:items.filter(function(i){ return i.h; }).length, all:items.length};
   h += '<div class="chips scroll" style="margin-top:6px">'+[['buy','To buy'],['got','Bought'],['have','Have it'],['all','All']].map(function(o){ return '<button class="chip'+((ui.gst||'buy')===o[0]?' on':'')+'" data-act="gst" data-v="'+o[0]+'">'+o[1]+' '+cnt[o[0]]+'</button>'; }).join('')+'</div>';
@@ -513,6 +523,34 @@ function reviewSheet(){
   ui._needs = needs; ui._rvwk = wk;
   return h;
 }
+function recGroSheet(){
+  var r = C.rec(view.page.id), st = ui.rp, rg = ui.rg = ui.rg || {off:{}};
+  var needs = C.recipeNeeds(r, st.sv, st.nog), have = C.haveKeys();
+  var onList = {}; D.groceries.forEach(function(i){ if(!i.b && !i.h && i.key) onList[i.key] = i; });
+  var h = '<div class="sh-h"><button class="ib" data-act="closeSheet" aria-label="Back">'+I('back',22)+'</button><h2 class="h3 grow">Add to groceries</h2></div>';
+  h += '<p class="small muted">'+esc(r.n)+', '+C.frac(st.sv)+' serving'+(st.sv===1?'':'s')+'. Pantry basics like salt, oil and spices are left out.</p>';
+  needs.forEach(function(n){
+    var k = n.key || n.name;
+    if(rg.off[k] === undefined) rg.off[k] = !!(n.key && have[n.key] && !onList[n.key]);
+    var note = n.key && onList[n.key] ? 'Already on your list, this adds to it' : (n.key && have[n.key] ? 'You have it' : '');
+    h += '<label class="chkrow"><input type="checkbox" data-act="rgT" data-k="'+esc(k)+'"'+(rg.off[k]?'':' checked')+'><span class="grow"><span class="nm">'+esc(n.name)+'</span><span class="sub">'+esc(C.amtText({key:n.key, amt:n.amt, u:n.u}))+'</span>'+(note?'<span class="sub">'+note+'</span>':'')+'</span>'+dot(n.key)+'</label>';
+  });
+  var on = needs.filter(function(n){ return !rg.off[n.key || n.name]; }).length;
+  h += '<button class="btn pri full" style="margin-top:14px" data-act="rgAdd">Add '+on+' item'+(on===1?'':'s')+' to list</button>';
+  ui._rgNeeds = needs;
+  return h;
+}
+function cookHaveSheet(){
+  var ck = C.cookable(pref.diet);
+  var h = '<div class="sh-h"><button class="ib" data-act="closeSheet" aria-label="Back">'+I('back',22)+'</button><h2 class="h3 grow">What can I cook?</h2></div>';
+  h += '<p class="small muted">Based on groceries you\u2019ve bought or marked Have it, plus pantry basics like salt, oil and spices.</p>';
+  if(!ck.any) return h + '<p class="empty">Tick items as bought or tap Have it in Groceries, and suggestions appear here.</p>';
+  function name(k){ var f = C.food(k); return f ? f.n.toLowerCase() : k; }
+  h += '<p class="sec-h">Ready to cook</p>' + (ck.ready.length ? '<div class="col">' + ck.ready.map(function(o){ return '<button class="opt" data-act="openRec" data-id="'+esc(o.r.id)+'"><span class="row" style="gap:8px">'+mark(o.r.d)+esc(o.r.n)+'</span>'+I('right',16)+'</button>'; }).join('') + '</div>' : '<p class="muted small">Nothing complete yet.</p>');
+  h += '<p class="sec-h">Missing 1 or 2 items</p>' + (ck.almost.length ? '<div class="col">' + ck.almost.slice(0, 20).map(function(o){
+    return '<div class="opt"><button class="grow tl" data-act="openRec" data-id="'+esc(o.r.id)+'"><span class="row" style="gap:8px">'+mark(o.r.d)+esc(o.r.n)+'</span><span class="sub">Missing: '+esc(o.miss.map(name).join(', '))+'</span></button><button class="btn sm" data-act="addMissing" data-id="'+esc(o.r.id)+'" data-v="'+esc(o.miss.join(','))+'">Add</button></div>'; }).join('') + '</div>' : '<p class="muted small">Nothing close yet.</p>');
+  return h;
+}
 function regularsSheet(){
   var regs = (D.settings.regulars || []);
   var h = '<div class="sh-h"><h2 class="h3">Regulars</h2><button class="link" data-act="closeSheet">Close</button></div>';
@@ -530,6 +568,7 @@ function renderSettings(){
   h += '<div class="card"><h2 class="h3">Your profile</h2>'+profileForm(ui.pf)+'</div>';
   var ws = wSet(), wu = wUnit(), cv = function(ml){ return wu === 'oz' ? Math.round(ml/29.5735) : ml; };
   h += '<div class="card"><h2 class="h3">Water</h2><p class="small muted">In '+(wu==='oz'?'ounces':'ml')+'. Switch units on the Today screen.</p><div class="grid3" style="margin-top:10px"><label>Daily goal<input class="in" id="w_goal" type="number" inputmode="numeric" value="'+cv(ws.goal)+'"></label><label>Your glass<input class="in" id="w_glass" type="number" inputmode="numeric" value="'+cv(ws.glass)+'"></label><label>Your bottle<input class="in" id="w_bottle" type="number" inputmode="numeric" value="'+cv(ws.bottle)+'"></label></div><button class="btn sm" style="margin-top:12px" data-act="saveWater">Save water settings</button></div>';
+  h += '<div class="card"><h2 class="h3">Daily net carb limit</h2><p class="small muted">Plan shows a note on days above this. Strict keto is usually 20 to 30 g.</p><div class="row" style="gap:8px;margin-top:10px"><input class="in" id="nc_lim" type="number" inputmode="numeric" value="'+C.ncLimit(uid())+'" style="width:100px" aria-label="Net carb limit in grams"><span class="muted">g</span><button class="btn sm" data-act="saveNc">Save</button></div></div>';
   h += '<div class="card"><h2 class="h3">Plan phase</h2><p class="small muted">Changes the keto colors for both of you.</p><div class="seg" style="margin-top:10px"><button class="'+(C.phase()==='keto'?'on':'')+'" data-act="phase" data-v="keto">Strict keto</button><button class="'+(C.phase()==='exit'?'on':'')+'" data-act="phase" data-v="exit">Exit phase</button></div></div>';
   if(pt) h += '<div class="card"><h2 class="h3">Shared with</h2><p class="row" style="gap:8px;margin-top:6px">'+C.avatar(pt, 28)+esc(C.prof(pt).name)+' <span class="muted small">('+C.portion(pt)+'× portion)</span></p></div>';
   h += '<div class="card"><h2 class="h3">Your account</h2><p class="small muted">'+esc(C.me.email||'')+'</p><label class="lbl">Your user ID</label><div class="idbox"><code>'+esc(uid())+'</code><button class="ib" data-act="copyId" aria-label="Copy user ID">'+I('copy')+'</button></div>'
@@ -604,6 +643,8 @@ function render(){
     if(st.t === 'filters'){ c = filterSheet(); full = true; }
     else if(st.t === 'picker'){ c = pickerSheet(st.s, curDay()); full = true; }
     else if(st.t === 'review'){ c = reviewSheet(); full = true; }
+    else if(st.t === 'recGro'){ c = recGroSheet(); full = true; }
+    else if(st.t === 'cookHave'){ c = cookHaveSheet(); full = true; }
     else if(st.t === 'facts') c = factsSheet(st.key, st.item);
     else if(st.t === 'toPlan') c = toPlanSheet(); else if(st.t === 'regulars') c = regularsSheet(); else if(st.t === 'cal') c = calSheet();
     else if(st.t === 'cookIngs') c = cookIngsSheet(); else if(st.t === 'made') c = '<h2 class="h3">Nicely done!</h2><p class="muted" style="margin:6px 0 14px">Did you make extra?</p><button class="btn full" data-act="madeExtra">Yes, plan it for tomorrow\u2019s lunch</button><button class="btn full" style="margin-top:8px" data-act="madeNo">No leftovers</button>';
@@ -679,6 +720,7 @@ document.addEventListener('click', function(ev){
     case 'wOtherAdd': var wv = +(($('wIn')||{}).value || 0); if(wv > 0){ waterAdd(wUnit() === 'oz' ? wv * 29.5735 : wv); ui.wother = false; } return;
     case 'wUndo': var cw = D.checkins[C.ymd(C.today()) + '_' + uid()] || {}, lg = (cw.wlog || []).slice(), last = lg.pop() || 0; setCheckin({wml: Math.max(0, waterMl(cw) - last), wlog: lg}); return;
     case 'wUnit': var pw = {}; pw[uid()] = {wu:v}; D.profiles[uid()] = Object.assign({}, C.prof(uid()), {wu:v}); W.set('meta/profiles', pw, true); render(); return;
+    case 'saveNc': var nl = Math.round(+($('nc_lim')||{}).value || 0); if(nl < 10 || nl > 150){ toast('Use a number between 10 and 150'); return; } var pn2 = {}; pn2[uid()] = {ncLimit:nl}; D.profiles[uid()] = Object.assign({}, C.prof(uid()), pn2[uid()]); W.set('meta/profiles', pn2, true); toast('Carb limit saved'); return;
     case 'saveWater':
       var f2 = wUnit() === 'oz' ? 29.5735 : 1, wg = Math.round((+$('w_goal').value || 0) * f2), wgl = Math.round((+$('w_glass').value || 0) * f2), wbt = Math.round((+$('w_bottle').value || 0) * f2);
       if(!wg || !wgl || !wbt){ toast('Fill in all three amounts'); return; }
@@ -774,6 +816,13 @@ document.addEventListener('click', function(ev){
     case 'share': var txt = C.groceryText(D.groceries.filter(function(i){ return !i.b && !i.h; }));
       if(navigator.share){ navigator.share({title:'Groceries', text:txt}).catch(function(){}); } else copyText(txt, 'List copied'); return;
     case 'review': ui.rv = v ? {wk:v, off:{}} : null; ui.sheet = {t:'review'}; render(); return;
+    case 'recGro': ui.rg = null; ui.sheet = {t:'recGro'}; render(); return;
+    case 'rgAdd': addRecipeGroceries(); return;
+    case 'cookHave': ui.sheet = {t:'cookHave'}; render(); return;
+    case 'addMissing':
+      var mr = C.rec(id), mk = (v || '').split(',').filter(Boolean), st2 = {sv: C.uids().reduce(function(t, u){ return t + C.portion(u); }, 0)};
+      C.recipeNeeds(mr, Math.max(1, st2.sv), false).filter(function(n){ return mk.indexOf(n.key) >= 0; }).forEach(function(n){ mergeGrocery(n, mr.n); });
+      toast('Added ' + mk.length + ' item' + (mk.length === 1 ? '' : 's') + ' for ' + mr.n); render(); return;
     case 'rvW': ui.rv.wk = v; ui.rv.off = {}; render(); return;
     case 'rvAdd': addFromPlan(); return;
     case 'regulars': ui.sheet = {t:'regulars'}; render(); return;
@@ -791,7 +840,7 @@ document.addEventListener('click', function(ev){
     case 'gSaveAmt': var ga = ($('gAmt')||{}).value || ''; W.upd('groceries/' + id, {note:ga.trim()}); ui.gopen = null; toast('Amount saved'); return;
     case 'gRegular': var gr = gItem(id); if(gr){ var rl = (D.settings.regulars || []).slice(); if(!rl.some(function(x){ return FD.norm(x.n) === FD.norm(gr.n); })){ rl.push({n:gr.n, key:gr.key || null, note:gr.note || '', sec:gr.sec}); D.settings.regulars = rl; W.set('meta/settings', {regulars:rl}, true); } toast('Saved as a regular'); } return;
     case 'gFacts': var gf = gItem(id); ui.per = 'p'; ui.mq = ''; ui.sheet = {t:'facts', key:gf.key, item:gf}; render(); return;
-    case 'gClear': D.groceries.filter(function(i){ return i.b; }).forEach(function(i){ W.del('groceries/' + i.id); }); toast('Bought items cleared'); return;
+    case 'gClear': D.groceries.filter(function(i){ return i.b; }).forEach(function(i){ W.del('groceries/' + i.id); }); toast('Bought items cleared. They no longer count in What can I cook.'); return;
     case 'gAdd': addManual(); return;
     case 'rematch': ui.rematch = true; ui.mq = ''; render(); return;
     case 'setMatch': setMatch(t.getAttribute('data-key')); return;
@@ -809,6 +858,7 @@ document.addEventListener('change', function(ev){
   var t = ev.target;
   if(t.getAttribute('data-act') === 'cookChk'){ cook.checked[t.getAttribute('data-i')] = t.checked; }
   if(t.getAttribute('data-act') === 'rvT'){ ui.rv.off[t.getAttribute('data-k')] = !t.checked; render(); }
+  if(t.getAttribute('data-act') === 'rgT'){ ui.rg.off[t.getAttribute('data-k')] = !t.checked; render(); }
   if(view.page && view.page.t === 'editor' && t.id === 'e_i'){ readEditor(); render(); }
 });
 document.addEventListener('input', function(ev){
@@ -866,6 +916,19 @@ function addFromPlan(){
   var gs = Object.assign({}, D.settings.gsig || {}); gs[wk] = C.needsSig(wk, pref.diet); D.settings.gsig = gs; W.set('meta/settings', {gsig:gs}, true);
   toast((added ? added + ' added' : '') + (added && updated ? ', ' : '') + (updated ? updated + ' updated' : '') || 'Nothing to add');
   closeSheet();
+}
+function mergeGrocery(n, rname){
+  var ex = D.groceries.filter(function(i){ return !i.b && !i.h && ((n.key && i.key === n.key) || (!n.key && FD.norm(i.n) === FD.norm(n.name))); })[0];
+  if(ex){
+    var upd = {for:(ex.for || []).indexOf(rname) >= 0 ? ex.for : (ex.for || []).concat([rname])};
+    if(!ex.note && ex.u === n.u) upd.amt = Math.round(((ex.amt || 0) + n.amt) * 10) / 10;
+    W.upd('groceries/' + ex.id, upd);
+  } else addGrocery({n:n.name, key:n.key || null, amt:Math.round(n.amt*10)/10, u:n.u, sec:n.sec, src:'rec', for:[rname]});
+}
+function addRecipeGroceries(){
+  var r = C.rec(view.page.id), needs = ui._rgNeeds || [], n = 0;
+  needs.forEach(function(x){ if(ui.rg.off[x.key || x.name]) return; mergeGrocery(x, r.n); n++; });
+  toast(n ? n + ' item' + (n === 1 ? '' : 's') + ' added for ' + r.n : 'Nothing to add'); closeSheet();
 }
 function setMatch(key){
   var it = ui.sheet && ui.sheet.item; if(!it) return;
