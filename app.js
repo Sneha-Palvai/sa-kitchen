@@ -984,6 +984,9 @@ function exportData(){
   }catch(e){ copyText(data, 'Backup copied'); }
 }
 
+/* ---------- offline support (only on the real website) ---------- */
+if('serviceWorker' in navigator && /github\.io$/.test(location.hostname)){ window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
+
 /* ---------- start ---------- */
 function boot(){ if(B) return; B = window.Backend; phase = 'loading'; render(); B.onAuth(onUser); }
 if(window.Backend) boot(); else window.addEventListener('backend-ready', boot);
