@@ -130,8 +130,8 @@ function profileForm(p, isSetup){
   var pors = [1,1.25,1.5,1.75,2].map(function(v){ return '<button type="button" class="chip'+((p.portion||1)===v?' on':'')+'" data-act="pport" data-v="'+v+'">'+v+'×</button>'; }).join('');
   return '<label class="lbl" for="pn">Name</label><input class="in" id="pn" value="'+esc(p.name||'')+'" placeholder="Your name" autocomplete="given-name">'
     + '<label class="lbl" for="pi">Initial shown in the app</label><input class="in" id="pi" maxlength="2" value="'+esc(p.ini||'')+'" style="width:90px">'
-    + '<p class="lbl">Color</p><div class="row wrap">'+cols+'</div>'
-    + '<p class="lbl">Portion size</p><div class="row wrap">'+pors+'</div><p class="small muted" style="margin-top:6px">Nutrition and grocery amounts use this. Many men use 1.5×.</p>'
+    + '<p class="lbl">Color</p><div class="row fw">'+cols+'</div>'
+    + '<p class="lbl">Portion size</p><div class="row fw">'+pors+'</div><p class="small muted" style="margin-top:6px">Nutrition and grocery amounts use this. Many men use 1.5×.</p>'
     + '<p class="lbl">Units</p><div class="seg"><button type="button" class="'+(p.units!=='us'?'on':'')+'" data-act="punits" data-v="m">Grams and ml</button><button type="button" class="'+(p.units==='us'?'on':'')+'" data-act="punits" data-v="us">Cups and ounces</button></div>'
     + (isSetup ? '<button class="btn pri full" style="margin-top:20px" data-act="saveProfile">Start cooking</button>' : '<button class="btn pri full" style="margin-top:18px" data-act="saveProfile">Save profile</button>');
 }
@@ -421,7 +421,7 @@ function renderGroceries(){
       if(open){
         h += '<div class="gx">' + (i.for && i.for.length ? '<p class="small muted">For: '+esc(i.for.join(', '))+'</p>' : '')
           + '<div class="row" style="gap:8px;margin-top:8px"><input class="in grow" id="gAmt" value="'+esc(i.note || a)+'" aria-label="Amount" placeholder="Amount, like 2 bags"><button class="btn sm" data-act="gSaveAmt" data-id="'+esc(i.id)+'">Save</button></div>'
-          + '<div class="row wrap" style="gap:8px;margin-top:8px">'+(i.sec !== 'Household' ? '<button class="btn sm" data-act="gFacts" data-id="'+esc(i.id)+'">'+I('info',16)+' Food facts</button>' : '')
+          + '<div class="row fw" style="gap:8px;margin-top:8px">'+(i.sec !== 'Household' ? '<button class="btn sm" data-act="gFacts" data-id="'+esc(i.id)+'">'+I('info',16)+' Food facts</button>' : '')
           + '<button class="btn sm" data-act="gRegular" data-id="'+esc(i.id)+'">'+I('star',16)+' Save as regular</button><button class="btn sm danger-o" data-act="gDel" data-id="'+esc(i.id)+'">'+I('trash',16)+' Remove</button></div></div>';
       }
       h += '</div>';

@@ -1,6 +1,6 @@
 // Offline support for S&A Kitchen.
 // Change the version below whenever you upload new app files, so phones update quickly.
-const CACHE = 'sa-kitchen-v1';
+const CACHE = 'sa-kitchen-v2';
 const CORE = ['./', './index.html', './foods.js', './recipes.js', './core.js', './app.js', './backend.js', './manifest.webmanifest', './icon-180.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
