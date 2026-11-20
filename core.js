@@ -32,9 +32,10 @@ C.longDate = function(d){ return C.DAYS[C.di(d)] + ', ' + C.MONTHS[d.getMonth()]
 C.shortDate = function(d){ return C.MONTHS[d.getMonth()].slice(0,3) + ' ' + d.getDate(); };
 
 /* ---------- people ---------- */
-C.uids = function(){ var u = Object.keys(C.D.profiles); if(C.me && u.indexOf(C.me.uid) < 0) u.unshift(C.me.uid); return u; };
+C.okId = function(u){ return typeof u === 'string' && /^[A-Za-z0-9]{6,128}$/.test(u); };
+C.uids = function(){ var u = Object.keys(C.D.profiles).filter(C.okId); if(C.me && u.indexOf(C.me.uid) < 0) u.unshift(C.me.uid); return u; };
 C.prof = function(uid){ return C.D.profiles[uid] || {name:'Me', ini:'?', color:0, portion:1, units:'m'}; };
-C.partner = function(){ var me = C.me && C.me.uid; return Object.keys(C.D.profiles).filter(function(u){ return u !== me; })[0] || null; };
+C.partner = function(){ var me = C.me && C.me.uid; return Object.keys(C.D.profiles).filter(function(u){ return u !== me && C.okId(u); })[0] || null; };
 C.portion = function(uid){ var p = C.prof(uid).portion; return p > 0 ? p : 1; };
 C.units = function(){ return C.prof(C.me && C.me.uid).units === 'us' ? 'us' : 'm'; };
 C.COLORS = [['#E1F5EE','#085041'],['#EEEDFE','#3C3489'],['#FAEEDA','#854F0B'],['#FBEAF0','#72243E'],['#E6F1FB','#0C447C'],['#EAF3DE','#27500A']];
@@ -49,7 +50,7 @@ C.food = function(key){
   return cf || null;
 };
 C.phase = function(){ return C.D.settings.phase === 'exit' ? 'exit' : 'keto'; };
-C.rate = function(f){ if(!f) return null; return C.phase() === 'exit' ? (f.re || f.rk) : f.rk; };
+C.rate = function(f){ if(!f) return null; var r = C.phase() === 'exit' ? (f.re || f.rk) : f.rk; return (r === 'g' || r === 'a' || r === 'r') ? r : null; };
 C.RATE = {g:['Great for keto','g'], a:['Okay in measured amounts','a'], r:['Not in your plan for now','r']};
 C.matchName = function(name){
   var n = FD.norm(name), map = (C.D.foods && C.D.foods.map) || {};

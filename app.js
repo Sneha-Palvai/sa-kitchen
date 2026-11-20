@@ -62,6 +62,8 @@ window.addEventListener('online', function(){ online = true; syncUI(); });
 window.addEventListener('offline', function(){ online = false; syncUI(); });
 function fail(e){ console.warn(e); if(e && e.code === 'permission-denied'){ phase = 'waiting'; render(); } }
 function uid(){ return C.me && C.me.uid; }
+function num(v){ var n = Number(v); return isFinite(n) && n > 0 ? n : 0; }
+function secTxt(v){ var n = num(v); return n >= 60 ? Math.round(n/60) + ' min' : n + ' sec'; }
 function fmtN(n){ return Math.round(n).toLocaleString(); }
 
 /* ---------- data writes (save locally first, sync when online) ---------- */
@@ -108,9 +110,12 @@ function onUser(u){
   if(!u){ phase = 'auth'; render(); return; }
   phase = 'checking'; render();
   B.check().then(function(ok){
-    if(!ok){ phase = 'waiting'; render(); return; }
+    if(!ok){ LS.set('ok_' + u.uid, false); phase = 'waiting'; render(); return; }
+    LS.set('ok_' + u.uid, true);
     phase = 'syncing'; startSubs(); render();
-  }).catch(function(e){ console.warn(e); phase = 'offline'; render(); });
+  }).catch(function(e){ console.warn(e);
+    if(LS.get('ok_' + u.uid, false)){ phase = 'syncing'; startSubs(); render(); return; }
+    phase = 'offline'; render(); });
 }
 
 /* ---------- screens ---------- */
@@ -162,8 +167,8 @@ function renderSetup(){
 /* Today */
 function wUnit(){ var p = C.prof(uid()); return p.wu || (p.units === 'us' ? 'oz' : 'ml'); }
 function wFmt(ml, u){ u = u || wUnit(); return u === 'oz' ? Math.round(ml / 29.5735) + ' oz' : fmtN(Math.round(ml / 10) * 10) + ' ml'; }
-function wSet(){ var p = C.prof(uid()); return {goal: p.wGoal || 2500, glass: p.wGlass || 250, bottle: p.wBottle || 500}; }
-function waterMl(ci){ return ci.wml != null ? ci.wml : (ci.water || 0) * 250; }
+function wSet(){ var p = C.prof(uid()); return {goal: num(p.wGoal) || 2500, glass: num(p.wGlass) || 250, bottle: num(p.wBottle) || 500}; }
+function waterMl(ci){ return ci.wml != null ? num(ci.wml) : num(ci.water) * 250; }
 function renderToday(){
   var t = C.today(), tk = C.ymd(t), wk = C.wk(t), d = C.di(t), me = uid(), pt = C.partner();
   var h = '<header class="top"><div><p class="muted small">'+C.longDate(t)+'</p><h1 class="h1">Today</h1></div>'+profBtn()+'</header>';
@@ -234,7 +239,7 @@ function filtered(){
 function activeFilters(){ var f = ui.rf || {}, n = 0; ['cat','prot','time','fav','own','edited'].forEach(function(k){ if(f[k]) n++; }); n += (f.tags || []).length; return n; }
 function rcard(r, wide){
   var n = C.nutri(r), m = C.portion(uid());
-  return '<button class="rc'+(wide?' wide':'')+'" data-act="openRec" data-id="'+esc(r.id)+'">'+mark(r.d)+'<span class="nm">'+esc(r.n)+'</span><span class="sub">'+r.t+' min, ≈'+fmtN(n.k*m)+' kcal, '+fmtN(n.p*m)+' g protein</span>'
+  return '<button class="rc'+(wide?' wide':'')+'" data-act="openRec" data-id="'+esc(r.id)+'">'+mark(r.d)+'<span class="nm">'+esc(r.n)+'</span><span class="sub">'+num(r.t)+' min, ≈'+fmtN(n.k*m)+' kcal, '+fmtN(n.p*m)+' g protein</span>'
     + (wide ? tagChips(r) : '') + (C.isFav(r.id) ? '<span class="fv">'+I('starf',14)+'</span>' : '') + '</button>';
 }
 function tagChips(r){
@@ -301,7 +306,7 @@ function renderRecipe(){
   var h = '<header class="top"><button class="ib" data-act="back" aria-label="Back">'+I('back',22)+'</button><div class="row" style="gap:4px"><button class="ib" data-act="recGro" aria-label="Add ingredients to groceries">'+I('cart')+'</button><button class="ib" data-act="editRec" aria-label="Edit recipe">'+I('edit')+'</button>'
     + '<button class="ib'+(C.isFav(r.id)?' fav':'')+'" data-act="fav" data-id="'+esc(r.id)+'" aria-label="'+(C.isFav(r.id)?'Remove from favorites':'Add to favorites')+'" aria-pressed="'+C.isFav(r.id)+'">'+I(C.isFav(r.id)?'starf':'star')+'</button></div></header>';
   h += '<div class="row" style="gap:6px">'+mark(st.nog ? 'nog' : r.d)+'<span class="small muted">'+C.CATS[r.c]+(r.c==='m'?', lunch or dinner':'')+'</span></div>';
-  h += '<h1 class="h1" style="margin:6px 0 2px">'+esc(r.n)+'</h1><p class="muted small">'+r.t+' min'+(r._kind==='custom'?', added by '+esc(C.prof(r._by).name):'')+(r._kind==='edit'?', edited by '+esc(C.prof(r._by).name):'')+'</p>';
+  h += '<h1 class="h1" style="margin:6px 0 2px">'+esc(r.n)+'</h1><p class="muted small">'+num(r.t)+' min'+(r._kind==='custom'?', added by '+esc(C.prof(r._by).name):'')+(r._kind==='edit'?', edited by '+esc(C.prof(r._by).name):'')+'</p>';
   var bfr = C.bestFor(r);
   h += '<p class="small" style="margin-top:8px"><b>Best for:</b> '+esc(bfr.text)+(bfr.why ? '<span class="muted">. '+esc(bfr.why)+'</span>' : '')+'</p>';
   h += '<div class="por"><div class="row between"><span class="small" style="font-weight:600">'+(st.who===uid()?'Your portion':esc(C.prof(st.who).name)+'\u2019s portion')+' ('+wm+'×)</span>'
@@ -315,15 +320,15 @@ function renderRecipe(){
   C.ings(r, st.nog).forEach(function(o){ var x = C.ingText(o.ing, f), fd = C.food(o.ing[0]);
     h += '<li>'+(fd ? '<button class="tl ingb" data-act="facts" data-key="'+esc(o.ing[0])+'">' : '<span class="ingb">')+'<span>'+esc(x.n.charAt(0).toUpperCase()+x.n.slice(1))+'</span>'+(fd?dot(o.ing[0]):'')+(fd?'</button>':'</span>')+'<b>'+esc(x.q || (o.ing[2]==='taste'?'to taste':''))+'</b></li>'; });
   h += '</ul><h2 class="h3 mt">Steps</h2><ol class="steps">';
-  (r.s || []).forEach(function(s){ h += '<li>'+C.stepText(r, s, f, st.nog, true)+(s[1]?' <span class="tm">'+I('clock',13)+' '+(s[1]>=60?Math.round(s[1]/60)+' min':s[1]+' sec')+'</span>':'')+'</li>'; });
+  (r.s || []).forEach(function(s){ h += '<li>'+C.stepText(r, s, f, st.nog, true)+(num(s[1])?' <span class="tm">'+I('clock',13)+' '+secTxt(s[1])+'</span>':'')+'</li>'; });
   h += '</ol>';
   if(r.tip) h += '<h2 class="h3 mt">Tips</h2><div class="box">'+esc(r.tip)+'</div>';
-  if(r.fr || r.rh) h += '<h2 class="h3 mt">Storing and reheating</h2><div class="box">'+(r.fr?'Keeps '+r.fr+' days in the fridge. ':'')+esc(r.rh||'')+'</div>';
+  if(r.fr || r.rh) h += '<h2 class="h3 mt">Storing and reheating</h2><div class="box">'+(num(r.fr)?'Keeps '+num(r.fr)+' days in the fridge. ':'')+esc(r.rh||'')+'</div>';
   var notes = D.notes.filter(function(x){ return x.rid === r.id; }).sort(function(a,b){ return (a.ts||0)-(b.ts||0); });
   h += '<h2 class="h3 mt">Our notes</h2>';
   notes.forEach(function(nt){ h += '<div class="note">'+C.avatar(nt.by, 24)+'<p class="grow">'+esc(nt.t)+'</p>'+(nt.by===uid()?'<button class="ib sm" data-act="delNote" data-id="'+esc(nt.id)+'" aria-label="Delete note">'+I('x',16)+'</button>':'')+'</div>'; });
   h += '<div class="row" style="gap:8px;margin-top:6px"><input class="in grow" id="noteIn" placeholder="Add a note, like \u201cless chili\u201d" aria-label="Add a note"><button class="btn sm" data-act="addNote">Add</button></div>';
-  h += '<div class="foot"><button class="btn" data-act="toPlan">Add to plan</button><button class="btn pri" data-act="cook">'+I('chef',18)+' Cook mode</button></div>';
+  h += '<div class="foot"><button class="btn" data-act="toPlan">Add to plan</button>'+((r.s||[]).length ? '<button class="btn pri" data-act="cook">'+I('chef',18)+' Cook mode</button>' : '')+'</div>';
   return h;
 }
 function factsSheet(key, item){
@@ -366,7 +371,7 @@ function renderCook(){
   h += '<p class="tiny muted center" style="margin-top:4px">'+I('sun',12)+' Screen stays on. Timers beep, so turn off silent mode to hear them.</p>';
   h += '<div class="timers" id="timers">'+timerChips()+'</div>';
   h += '<p class="big-step">'+C.stepText(r, s, f, st.nog, true)+'</p>';
-  if(s[1] && !cook.timers.some(function(t){ return t.step === cook.step; })) h += '<div class="center"><button class="btn" data-act="startTimer">'+I('clock',18)+' Start '+(s[1]>=60?Math.round(s[1]/60)+' min':s[1]+' sec')+' timer</button></div>';
+  if(num(s[1]) && !cook.timers.some(function(t){ return t.step === cook.step; })) h += '<div class="center"><button class="btn" data-act="startTimer">'+I('clock',18)+' Start '+secTxt(s[1])+' timer</button></div>';
   h += '<div class="cooknav"><button class="btn" data-act="cookPrev"'+(cook.step===0?' disabled':'')+'>Back</button><button class="btn pri" data-act="cookNext">'+(cook.step===n-1?'Done':'Next')+'</button></div></div>';
   return h;
 }
@@ -395,12 +400,12 @@ function renderPlan(){
   C.SLOTS.forEach(function(s){
     var sl = C.slot(wk, sel, s), id = C.eff(sl, who), r = C.rec(id);
     if(!sl){ h += '<button class="item tl" data-act="slotAdd" data-s="'+s+'"><span class="sl">'+C.SLOTN[s]+'</span><span class="grow muted">+ '+(s === 'S' ? 'Add a snack (optional)' : 'Add a meal')+'</span></button>'; return; }
-    var others = sl.p ? Object.keys(sl.p).filter(function(u){ return sl.p[u] && sl.p[u] !== sl.r && u !== who; }) : [];
+    var others = C.uids().filter(function(u){ return u !== who && C.eff(sl, u) && C.eff(sl, u) !== id; });
     var name = r ? r.n : (sl.p ? 'Nothing for ' + C.prof(who).name : 'Recipe removed');
     h += '<div class="item"><span class="sl">'+C.SLOTN[s]+'</span>'
       + (r ? '<button class="grow tl" data-act="openRec" data-id="'+esc(r.id)+'">' : '<div class="grow">')
       + '<span class="nm">'+esc(name)+'</span>'
-      + others.map(function(u){ var rr = C.rec(sl.p[u]); return '<span class="sub">'+esc(C.prof(u).name)+': '+esc(rr ? rr.n : '')+'</span>'; }).join('')
+      + others.map(function(u){ var rr = C.rec(C.eff(sl, u)); return '<span class="sub">'+esc(C.prof(u).name)+': '+esc(rr ? rr.n : '')+'</span>'; }).join('')
       + (sl.lo ? '<span class="pill blue">Leftovers from '+esc(loText(sl.lo))+'</span>' : '') + (sl.x ? '<span class="pill green">Make extra for tomorrow</span>' : '') + (r && C.has(r,'occ') ? '<span class="pill amber">Occasional</span>' : '')
       + (r ? '</button>' : '</div>')
       + '<button class="ib" data-act="slotMenu" data-s="'+s+'" aria-label="Options for '+C.SLOTN[s].toLowerCase()+'" aria-haspopup="menu">'+I('dots',20)+'</button></div>';
@@ -472,7 +477,7 @@ function renderGroceries(){
   var left = items.filter(function(i){ return !i.b && !i.h; }).length;
   var h = '<header class="top"><div><p class="muted small">'+left+' item'+(left===1?'':'s')+' to buy'+(C.partner()?', shared with '+esc(C.prof(C.partner()).name):'')+'</p><h1 class="h1">Groceries</h1></div><button class="ib" data-act="share" aria-label="Share list">'+I('share')+'</button></header>';
   var sig = D.settings.gsig || {}, stale = [];
-  Object.keys(sig).forEach(function(wk){ if(wk < C.wk(C.today())) return; if(!items.some(function(i){ return i.src === 'plan' && i.wk === wk && !i.b; })) return; if(D.plans[wk] && C.needsSig(wk, pref.diet) !== sig[wk]) stale.push(wk); });
+  Object.keys(sig).forEach(function(wk){ if(!/^\d{4}-\d{2}-\d{2}$/.test(wk) || wk < C.wk(C.today())) return; if(!items.some(function(i){ return i.src === 'plan' && i.wk === wk && !i.b; })) return; if(D.plans[wk] && C.needsSig(wk, pref.diet) !== sig[wk]) stale.push(wk); });
   stale.forEach(function(wk){ h += '<div class="rem"><span class="remi">'+I('alert',18)+'</span><div class="grow"><p class="nm">Your plan changed</p><p class="sub">Meals for the week of '+C.shortDate(C.parse(wk))+' changed after you added items.</p></div><button class="btn sm" data-act="review" data-v="'+wk+'">Review</button></div>'; });
   h += '<div class="row" style="gap:8px;margin-bottom:10px"><button class="btn sm grow" data-act="review">'+I('cal',16)+' From your plan</button><button class="btn sm grow" data-act="regulars">'+I('star',16)+' Regulars</button></div><button class="btn sm full" style="margin-bottom:10px" data-act="cookHave">'+I('chef',16)+' What can I cook?</button>';
   h += '<div class="chips scroll">'+[['all','Whole week'],['mw','Mon to Wed'],['tw','Thu to Sun']].map(function(o){ return '<button class="chip'+((ui.grg||'all')===o[0]?' on':'')+'" data-act="grg" data-v="'+o[0]+'">'+o[1]+'</button>'; }).join('')+'</div>';
@@ -481,7 +486,7 @@ function renderGroceries(){
   h += '<div class="prog"><div style="width:'+(items.length?Math.round((cnt.got+cnt.have)/items.length*100):0)+'%"></div></div>';
   var vis = items.filter(gVisible), any = false;
   C.SECS.forEach(function(sec){
-    var its = vis.filter(function(i){ return (i.sec || 'Other') === sec; }); if(!its.length) return; any = true;
+    var its = vis.filter(function(i){ var sc = C.SECS.indexOf(i.sec) >= 0 ? i.sec : 'Other'; return sc === sec; }); if(!its.length) return; any = true;
     h += '<p class="sec-h row between"><span>'+sec+'</span><span class="muted small">'+its.length+'</span></p><div class="card list">';
     its.forEach(function(i){
       var open = ui.gopen === i.id, a = C.amtText(i);
@@ -696,7 +701,7 @@ document.addEventListener('click', function(ev){
       B.reset(em).then(function(){ authErr = ''; toast('Password reset email sent'); }).catch(function(){ authErr = 'Couldn\u2019t send the email. Check the address.'; render(); }); return;
     case 'copyId': copyText(uid(), 'User ID copied'); return;
     case 'recheck': onUser(C.me); return;
-    case 'signout': B.signOut(); ui = {}; view = {tab:'today', page:null}; return;
+    case 'signout': if(C.me) LS.set('ok_' + C.me.uid, false); unsubAll(); ui = {}; view = {tab:'today', page:null}; B.signOut(); return;
     case 'pcolor': readProfile(); ui.pf.color = +t.getAttribute('data-i'); render(); return;
     case 'pport': readProfile(); ui.pf.portion = +v; render(); return;
     case 'punits': readProfile(); ui.pf.units = v; render(); return;
@@ -762,7 +767,7 @@ document.addEventListener('click', function(ev){
     case 'cookClose': cook = null; unwake(); ui.sheet = null; render(); return;
     case 'cookPrev': if(cook.step > 0){ cook.step--; render(); } return;
     case 'cookNext': var rr = C.rec(cook.id); if(cook.step < rr.s.length - 1){ cook.step++; render(); } else { ui.sheet = {t:'made'}; render(); } return;
-    case 'startTimer': ac(); var cr = C.rec(cook.id), secs = cr.s[cook.step][1]; cook.timers.push({step:cook.step, end:Date.now()+secs*1000, label:'Step ' + (cook.step+1)}); render(); return;
+    case 'startTimer': ac(); var cr = C.rec(cook.id), secs = num(cr.s[cook.step][1]); cook.timers.push({step:cook.step, end:Date.now()+secs*1000, label:'Step ' + (cook.step+1)}); render(); return;
     case 'cookIngs': ui.sheet = {t:'cookIngs'}; render(); return;
     case 'madeExtra':
       var tm = C.addD(C.today(), 1), twk = C.wk(tm), cur2 = C.slot(twk, C.di(tm), 'L');
@@ -988,7 +993,8 @@ function exportData(){
 if('serviceWorker' in navigator && /github\.io$/.test(location.hostname)){ window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
 
 /* ---------- start ---------- */
-function boot(){ if(B) return; B = window.Backend; phase = 'loading'; render(); B.onAuth(onUser); }
+function boot(){ if(B) return;
+  try{ if(window.top !== window.self){ document.body.innerHTML = '<p style="padding:24px;font-family:sans-serif">For your security, open S&amp;A Kitchen directly at sneha-palvai.github.io/sa-kitchen.</p>'; return; } }catch(e){ return; } B = window.Backend; phase = 'loading'; render(); B.onAuth(onUser); }
 if(window.Backend) boot(); else window.addEventListener('backend-ready', boot);
 setTimeout(function(){ if(!B){ phase = 'offline'; render(); } }, 15000);
 window.SAK_APP = {render:render, state:function(){ return {phase:phase, view:view, ui:ui, cook:cook}; }};
